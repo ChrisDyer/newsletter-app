@@ -83,6 +83,14 @@ export default function App() {
     if (filter === 'starred') refresh()
   }
 
+  async function markAllRead() {
+    await fetch('/api/newsletters/read-all', { method: 'POST' })
+    const now = new Date().toISOString()
+    setNewsletters(prev => prev.map(n => n.read_at ? n : { ...n, read_at: now }))
+    setUnread(0)
+    loadSenders()
+  }
+
   async function archive(id, archived = true) {
     await fetch(`/api/newsletters/${id}/archive`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived }),
@@ -128,18 +136,29 @@ export default function App() {
               </button>
             ))}
           </div>
-          <select
-            value={sender}
-            onChange={e => { setSender(e.target.value); setSelectedId(null) }}
-            className="ml-auto text-xs bg-gray-800 border border-gray-700 rounded-md text-gray-300 px-2 py-1 max-w-[12rem] focus:outline-none focus:border-blue-500"
-          >
-            <option value="">All senders</option>
-            {senders.map(s => (
-              <option key={s.from_email} value={s.from_email}>
-                {(s.from_name || s.from_email)}{s.unread > 0 ? ` (${s.unread})` : ''}
-              </option>
-            ))}
-          </select>
+          <div className="ml-auto flex items-center gap-2">
+            {unread > 0 && (
+              <button
+                onClick={markAllRead}
+                className="text-xs px-2.5 py-1 rounded-md text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors whitespace-nowrap"
+                title="Mark all newsletters as read"
+              >
+                ✓ Mark all read
+              </button>
+            )}
+            <select
+              value={sender}
+              onChange={e => { setSender(e.target.value); setSelectedId(null) }}
+              className="text-xs bg-gray-800 border border-gray-700 rounded-md text-gray-300 px-2 py-1 max-w-[12rem] focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All senders</option>
+              {senders.map(s => (
+                <option key={s.from_email} value={s.from_email}>
+                  {(s.from_name || s.from_email)}{s.unread > 0 ? ` (${s.unread})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </header>
 

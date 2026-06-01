@@ -112,6 +112,14 @@ export function registerRoutes(app, db) {
 
   // ── State toggles ────────────────────────────────────────────────────────────
 
+  // Mark every unread newsletter as read. Defined before the :id routes so the literal
+  // "read-all" path can't be swallowed by a param match.
+  app.post('/api/newsletters/read-all', (req, res) => {
+    const info = db.prepare('UPDATE newsletters SET read_at = ? WHERE read_at IS NULL')
+      .run(new Date().toISOString())
+    res.json({ ok: true, updated: info.changes })
+  })
+
   app.post('/api/newsletters/:id/star', (req, res) => {
     const row = db.prepare('SELECT starred FROM newsletters WHERE id = ?').get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
