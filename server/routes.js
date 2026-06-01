@@ -1,7 +1,7 @@
 import { syncNewsletters } from './sync.js'
 import { toReaderHtml } from './readability.js'
 
-const LIST_FIELDS = `n.id, n.gmail_id, n.from_name, n.from_email, n.subject, n.date,
+const LIST_FIELDS = `n.id, n.gmail_id, n.from_name, n.from_email, n.subject, n.date, n.internal_date,
   n.snippet, n.read_at, n.starred, n.archived_at, n.reading_minutes`
 
 // Build the WHERE clause + params shared by the list and its count, from filter/sender.

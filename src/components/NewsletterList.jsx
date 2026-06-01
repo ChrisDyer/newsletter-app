@@ -19,8 +19,9 @@ function groupByDate(newsletters) {
   const keyToIndex = new Map()
 
   for (const n of newsletters) {
-    let d
-    try { d = new Date(n.date) } catch { d = new Date(0) }
+    const internalDate = Number(n.internal_date)
+    let d = Number.isFinite(internalDate) ? new Date(internalDate) : new Date(n.date)
+    if (Number.isNaN(d.getTime())) d = new Date(0)
     d.setHours(0, 0, 0, 0)
     const key = d.getTime()
 
