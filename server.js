@@ -1,12 +1,16 @@
-import 'dotenv/config'
-import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+import express from 'express'
 import { initDb } from './server/db.js'
 import { registerRoutes } from './server/routes.js'
 import { syncNewsletters } from './server/sync.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Load .env by absolute path (not cwd) so env vars apply regardless of the working
+// directory pm2 launches this process from.
+dotenv.config({ path: path.join(__dirname, '.env') })
+
 const PORT    = process.env.PORT || 3002
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'newsletters.db')
 
