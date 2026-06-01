@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function NewsletterReader({ newsletter, onClose, onPrev, onNext }) {
+export default function NewsletterReader({ newsletter, onClose, onPrev, onNext, onToggleStar, onArchive, archivedView }) {
   const touchStartX = useRef(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,16 +43,42 @@ export default function NewsletterReader({ newsletter, onClose, onPrev, onNext }
         {/* Card */}
         <div className="relative h-full bg-white rounded-2xl overflow-hidden shadow-2xl">
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/30 text-gray-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {/* Toolbar: star, archive, close */}
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+            {onToggleStar && (
+              <button
+                onClick={onToggleStar}
+                aria-label={newsletter?.starred ? 'Unstar' : 'Star'}
+                title={newsletter?.starred ? 'Unstar' : 'Star'}
+                className={`w-8 h-8 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/30 transition-colors ${newsletter?.starred ? 'text-amber-500' : 'text-gray-700'}`}
+              >
+                <svg className="w-4 h-4" fill={newsletter?.starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.48 3.5l2.0 4.06 4.48.65-3.24 3.16.77 4.46-4-2.1-4 2.1.76-4.46L4.0 8.2l4.48-.65 2.0-4.06z" />
+                </svg>
+              </button>
+            )}
+            {onArchive && (
+              <button
+                onClick={onArchive}
+                aria-label={archivedView ? 'Restore' : 'Archive'}
+                title={archivedView ? 'Restore' : 'Archive'}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/30 text-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8l-1 12a1 1 0 001 1h12a1 1 0 001-1L19 8M5 8l1-3h12l1 3M10 12h4" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/30 text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
           {/* Loading state */}
           {!newsletter && (

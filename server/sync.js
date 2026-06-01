@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { getGmailClient, listMessageIds, fetchMessage } from './gmail.js'
+import { readingMinutes } from './db.js'
 
 // Shared guard so a scheduled auto-sync and a manual sync can't run concurrently.
 let running = false
@@ -25,9 +26,9 @@ async function runSync(db) {
 
   const insert = db.prepare(`
     INSERT OR IGNORE INTO newsletters
-      (gmail_id, thread_id, from_name, from_email, subject, date, internal_date, snippet, body_html, body_text)
+      (gmail_id, thread_id, from_name, from_email, subject, date, internal_date, snippet, body_html, body_text, reading_minutes)
     VALUES
-      (@gmail_id, @thread_id, @from_name, @from_email, @subject, @date, @internal_date, @snippet, @body_html, @body_text)
+      (@gmail_id, @thread_id, @from_name, @from_email, @subject, @date, @internal_date, @snippet, @body_html, @body_text, @reading_minutes)
   `)
 
   let added = 0
@@ -37,6 +38,7 @@ async function runSync(db) {
     // log it and keep going so the remaining new messages still land.
     try {
       const msg = await fetchMessage(gmail, id)
+      msg.reading_minutes = readingMinutes(msg.body_text)
       insert.run(msg)
       added++
       console.log(`[sync] +${added}/${newIds.length}: ${msg.subject}`)

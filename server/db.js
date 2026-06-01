@@ -27,8 +27,65 @@ export function initDb(dbPath) {
   `)
 
   migrateInternalDate(db)
+  migrateReaderFeatures(db)
 
   return db
+}
+
+// Estimate reading time at ~200 words/min. Null for empty bodies so the UI can hide it.
+export function readingMinutes(text) {
+  if (!text) return null
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  if (words === 0) return null
+  return Math.max(1, Math.ceil(words / 200))
+}
+
+// Reader features added after launch: read/archive/star state, reading-time, and a
+// full-text search index. All idempotent so it's safe to run on every startup.
+function migrateReaderFeatures(db) {
+  const cols = db.prepare('PRAGMA table_info(newsletters)').all().map(c => c.name)
+  const addCol = (name, ddl) => { if (!cols.includes(name)) db.exec(`ALTER TABLE newsletters ADD COLUMN ${ddl}`) }
+  addCol('read_at', 'read_at TEXT')
+  addCol('archived_at', 'archived_at TEXT')
+  addCol('starred', 'starred INTEGER NOT NULL DEFAULT 0')
+  addCol('reading_minutes', 'reading_minutes INTEGER')
+
+  // Backfill reading_minutes BEFORE the FTS triggers exist so we don't churn the index.
+  const missing = db.prepare('SELECT id, body_text FROM newsletters WHERE reading_minutes IS NULL').all()
+  if (missing.length) {
+    const upd = db.prepare('UPDATE newsletters SET reading_minutes = ? WHERE id = ?')
+    db.transaction(rows => { for (const r of rows) upd.run(readingMinutes(r.body_text), r.id) })(missing)
+  }
+
+  // Plain FTS5 index (stores its own copy of the text) over the searchable columns, kept
+  // in sync via triggers. A plain table supports DELETE BY rowid, which avoids the fragile
+  // 'delete' command external-content tables require.
+  db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS newsletters_fts USING fts5(
+      subject, from_name, from_email, body_text
+    );
+    CREATE TRIGGER IF NOT EXISTS nl_fts_ai AFTER INSERT ON newsletters BEGIN
+      INSERT INTO newsletters_fts(rowid, subject, from_name, from_email, body_text)
+      VALUES (new.id, new.subject, new.from_name, new.from_email, new.body_text);
+    END;
+    CREATE TRIGGER IF NOT EXISTS nl_fts_ad AFTER DELETE ON newsletters BEGIN
+      DELETE FROM newsletters_fts WHERE rowid = old.id;
+    END;
+    CREATE TRIGGER IF NOT EXISTS nl_fts_au AFTER UPDATE ON newsletters BEGIN
+      DELETE FROM newsletters_fts WHERE rowid = old.id;
+      INSERT INTO newsletters_fts(rowid, subject, from_name, from_email, body_text)
+      VALUES (new.id, new.subject, new.from_name, new.from_email, new.body_text);
+    END;
+  `)
+
+  // Populate the index from existing rows once (empty on first creation).
+  const ftsCount = db.prepare('SELECT COUNT(*) AS n FROM newsletters_fts').get().n
+  if (ftsCount === 0) {
+    db.exec(`
+      INSERT INTO newsletters_fts(rowid, subject, from_name, from_email, body_text)
+      SELECT id, subject, from_name, from_email, body_text FROM newsletters
+    `)
+  }
 }
 
 // internal_date (epoch-ms) was added after launch. Older DBs created with the original
