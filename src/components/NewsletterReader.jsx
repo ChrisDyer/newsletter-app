@@ -67,6 +67,7 @@ export default function NewsletterReader({ newsletter, onClose, onPrev, onNext }
               key={newsletter.id}
               srcDoc={body}
               sandbox="allow-same-origin allow-popups"
+              referrerPolicy="no-referrer"
               className="w-full h-full border-0"
               title={newsletter?.subject}
               onLoad={() => setLoading(false)}

@@ -84,6 +84,9 @@ export async function fetchMessage(gmail, id) {
     from_email: fromEmail,
     subject: headers['subject'] || '(no subject)',
     date: headers['date'] || null,
+    // Gmail's internalDate is epoch-ms (as a string) and is always present, unlike the
+    // freeform Date: header which can be missing or unparseable. Store it for sorting.
+    internal_date: msg.internalDate ? Number(msg.internalDate) : null,
     snippet: msg.snippet || null,
     body_html: htmlParts[0] || null,
     body_text: textParts[0] || null,

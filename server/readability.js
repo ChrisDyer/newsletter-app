@@ -101,7 +101,7 @@ export function toReaderHtml(bodyHtml, bodyText, { fromName, date } = {}) {
     try {
       const { emailStyles, bodyContent } = makeEmailResponsive(bodyHtml)
       const header = dateline(fromName, date)
-      return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${SHELL_CSS}</style>${emailStyles}</head><body>${header}${bodyContent}</body></html>`
+      return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><style>${SHELL_CSS}</style>${emailStyles}</head><body>${header}${bodyContent}</body></html>`
     } catch (err) {
       console.warn('[readability] responsive pass failed:', err.message)
     }
@@ -111,5 +111,5 @@ export function toReaderHtml(bodyHtml, bodyText, { fromName, date } = {}) {
   const header = dateline(fromName, date)
   const text = bodyText || 'No content available.'
   const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${SHELL_CSS} body{font-family:system-ui,sans-serif;} pre{white-space:pre-wrap;font-family:inherit;}</style></head><body>${header}<pre>${escaped}</pre></body></html>`
+  return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><style>${SHELL_CSS} body{font-family:system-ui,sans-serif;} pre{white-space:pre-wrap;font-family:inherit;}</style></head><body>${header}<pre>${escaped}</pre></body></html>`
 }

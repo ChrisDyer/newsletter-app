@@ -2,26 +2,25 @@ import { syncNewsletters } from './sync.js'
 import { toReaderHtml } from './readability.js'
 
 export function registerRoutes(app, db) {
+  const PAGE_SIZE = 25
+
   app.get('/api/newsletters', (req, res) => {
     const page = Math.max(0, parseInt(req.query.page) || 0)
-    const rows = db.prepare(`
+    const offset = page * PAGE_SIZE
+
+    // Sort on internal_date (reliable epoch-ms from Gmail). Rows are never dropped for a
+    // bad Date: header any more — backfill guarantees every row has an internal_date.
+    const newsletters = db.prepare(`
       SELECT id, gmail_id, from_name, from_email, subject, date, snippet
       FROM newsletters
-    `).all()
-    rows.sort((a, b) => new Date(b.date) - new Date(a.date))
+      ORDER BY internal_date DESC, id DESC
+      LIMIT ? OFFSET ?
+    `).all(PAGE_SIZE, offset)
 
-    const dayMs = 86400000
-    const now = Date.now()
-    const pageEnd = now - page * 7 * dayMs
-    const pageStart = now - (page + 1) * 7 * dayMs
+    const total = db.prepare('SELECT COUNT(*) AS n FROM newsletters').get().n
+    const hasMore = offset + newsletters.length < total
 
-    const newsletters = rows.filter(n => {
-      const t = new Date(n.date).getTime()
-      return t >= pageStart && t <= pageEnd
-    })
-    const hasMore = rows.some(n => new Date(n.date).getTime() < pageStart)
-
-    res.json({ newsletters, page, hasMore })
+    res.json({ newsletters, page, hasMore, total, pageSize: PAGE_SIZE })
   })
 
   app.get('/api/newsletters/:id', (req, res) => {

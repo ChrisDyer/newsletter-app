@@ -4,14 +4,6 @@ import NewsletterReader from './components/NewsletterReader.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import SyncButton from './components/SyncButton.jsx'
 
-function weekLabel(page) {
-  const now = new Date()
-  const end = new Date(now - page * 7 * 86400000)
-  const start = new Date(now - (page + 1) * 7 * 86400000)
-  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  return `${fmt(start)} – ${fmt(end)}`
-}
-
 export default function App() {
   const [newsletters, setNewsletters] = useState([])
   const [selectedId, setSelectedId] = useState(null)
@@ -20,6 +12,8 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+  const [total, setTotal] = useState(0)
+  const [pageSize, setPageSize] = useState(25)
 
   const fetchPage = useCallback((p) => {
     setLoading(true)
@@ -28,6 +22,8 @@ export default function App() {
       .then(data => {
         setNewsletters(data.newsletters)
         setHasMore(data.hasMore)
+        if (typeof data.total === 'number') setTotal(data.total)
+        if (typeof data.pageSize === 'number') setPageSize(data.pageSize)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -98,7 +94,11 @@ export default function App() {
                 Newer
               </button>
 
-              <span className="text-gray-500 text-xs">{weekLabel(page)}</span>
+              <span className="text-gray-500 text-xs">
+                {total > 0
+                  ? `${page * pageSize + 1}–${page * pageSize + newsletters.length} of ${total}`
+                  : 'No newsletters'}
+              </span>
 
               <button
                 onClick={() => { setPage(p => p + 1); setSelectedId(null) }}

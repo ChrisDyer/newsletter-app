@@ -12,18 +12,26 @@ export async function syncNewsletters(db) {
 
   const insert = db.prepare(`
     INSERT OR IGNORE INTO newsletters
-      (gmail_id, thread_id, from_name, from_email, subject, date, snippet, body_html, body_text)
+      (gmail_id, thread_id, from_name, from_email, subject, date, internal_date, snippet, body_html, body_text)
     VALUES
-      (@gmail_id, @thread_id, @from_name, @from_email, @subject, @date, @snippet, @body_html, @body_text)
+      (@gmail_id, @thread_id, @from_name, @from_email, @subject, @date, @internal_date, @snippet, @body_html, @body_text)
   `)
 
   let added = 0
+  let failed = 0
   for (const id of newIds) {
-    const msg = await fetchMessage(gmail, id)
-    insert.run(msg)
-    added++
-    console.log(`[sync] +${added}/${newIds.length}: ${msg.subject}`)
+    // One bad message (fetch error, malformed payload) must not abort the whole sync —
+    // log it and keep going so the remaining new messages still land.
+    try {
+      const msg = await fetchMessage(gmail, id)
+      insert.run(msg)
+      added++
+      console.log(`[sync] +${added}/${newIds.length}: ${msg.subject}`)
+    } catch (err) {
+      failed++
+      console.warn(`[sync] skipped message ${id}: ${err.message}`)
+    }
   }
 
-  return { total: ids.length, added }
+  return { total: ids.length, added, failed }
 }
