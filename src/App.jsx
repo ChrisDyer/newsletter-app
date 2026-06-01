@@ -11,13 +11,19 @@ const FILTERS = [
   { key: 'archived', label: 'Archived' },
 ]
 
+// Allow deep-linking into a filter via ?filter= (e.g. the homepage's "N unread" badge).
+function initialFilter() {
+  const f = new URLSearchParams(window.location.search).get('filter')
+  return FILTERS.some((x) => x.key === f) ? f : 'all'
+}
+
 export default function App() {
   const [newsletters, setNewsletters] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [selectedNewsletter, setSelectedNewsletter] = useState(null)
   const [searchInput, setSearchInput] = useState('')
   const [q, setQ] = useState('')
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(initialFilter)
   const [sender, setSender] = useState('')
   const [senders, setSenders] = useState([])
   const [loading, setLoading] = useState(true)
