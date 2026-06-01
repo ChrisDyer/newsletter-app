@@ -19,10 +19,12 @@ app.use(express.json())
 // ALLOW_NO_ACCESS_HEADER=1 only to smoke-test the production build locally.
 if (process.env.ALLOW_NO_ACCESS_HEADER !== '1') {
   app.use((req, res, next) => {
-    if (!req.headers['cf-access-authenticated-user-email']) {
-      return res.status(403).send('Forbidden')
-    }
-    next()
+    if (req.headers['cf-access-authenticated-user-email']) return next()
+    // Allow same-VPS server-to-server calls (e.g. the homepage dashboard) that present
+    // the shared internal token instead of going through Cloudflare Access.
+    const token = process.env.INTERNAL_API_TOKEN
+    if (token && req.headers['x-internal-token'] === token) return next()
+    return res.status(403).send('Forbidden')
   })
 }
 

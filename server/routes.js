@@ -23,6 +23,14 @@ export function registerRoutes(app, db) {
     res.json({ newsletters, page, hasMore, total, pageSize: PAGE_SIZE })
   })
 
+  // Compact counts for the cross-app homepage dashboard.
+  app.get('/api/summary', (req, res) => {
+    const total = db.prepare('SELECT COUNT(*) AS n FROM newsletters').get().n
+    const weekAgo = Date.now() - 7 * 86400000
+    const recent = db.prepare('SELECT COUNT(*) AS n FROM newsletters WHERE internal_date >= ?').get(weekAgo).n
+    res.json({ total, recent })
+  })
+
   app.get('/api/newsletters/:id', (req, res) => {
     const row = db.prepare('SELECT * FROM newsletters WHERE id = ?').get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
