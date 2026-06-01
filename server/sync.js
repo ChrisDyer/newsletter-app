@@ -1,7 +1,20 @@
 import 'dotenv/config'
 import { getGmailClient, listMessageIds, fetchMessage } from './gmail.js'
 
+// Shared guard so a scheduled auto-sync and a manual sync can't run concurrently.
+let running = false
+
 export async function syncNewsletters(db) {
+  if (running) return { total: 0, added: 0, failed: 0, skipped: true }
+  running = true
+  try {
+    return await runSync(db)
+  } finally {
+    running = false
+  }
+}
+
+async function runSync(db) {
   const label = process.env.NEWSLETTER_LABEL || 'Newsletters'
   const gmail = getGmailClient()
   const ids = await listMessageIds(gmail, label)
