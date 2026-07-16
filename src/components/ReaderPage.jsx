@@ -210,12 +210,12 @@ export default function ReaderPage() {
 
   return (
     <main
-      className="min-h-screen bg-[#f4f1eb] text-gray-950"
+      className="min-h-screen bg-white text-gray-950"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-3 py-3 sm:px-5 sm:py-5">
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md bg-white shadow-xl ring-1 ring-gray-200">
+      <div className="flex min-h-screen w-full flex-col">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
           <header className="shrink-0 border-b border-gray-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <TextButton onClick={goBack}>
