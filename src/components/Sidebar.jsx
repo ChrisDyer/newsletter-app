@@ -1,4 +1,4 @@
-﻿import SenderAvatar from './SenderAvatar.jsx'
+import SenderAvatar from './SenderAvatar.jsx'
 import SyncButton from './SyncButton.jsx'
 
 const NAV_ITEMS = [
@@ -96,10 +96,11 @@ export default function Sidebar({
         >
           Mark all read
         </button>
-        <a href="https://zo-bot.com" className="block rounded-md px-3 py-2 text-center text-sm text-gray-500 hover:bg-gray-900 hover:text-gray-200">
-          Zo-Bot home
+        <a href="/" className="hidden [@media(display-mode:standalone)]:flex items-center justify-center rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-900 hover:text-gray-200">
+          Zo-Bot Home
         </a>
       </div>
     </aside>
   )
 }
+
