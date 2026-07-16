@@ -1,9 +1,9 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiUrl } from './api.js'
 import NewsletterList from './components/NewsletterList.jsx'
 import PreviewPane from './components/PreviewPane.jsx'
-import ReaderStub from './components/ReaderStub.jsx'
+import ReaderPage from './components/ReaderPage.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import Sidebar from './components/Sidebar.jsx'
 
@@ -168,9 +168,11 @@ function Inbox() {
     setDrawerOpen(false)
   }
 
+  const listIds = useMemo(() => newsletters.map(n => n.id), [newsletters])
+
   function selectNewsletter(newsletter) {
     if (isLarge) setSelectedId(newsletter.id)
-    else navigate(`/read/${newsletter.id}${location.search}`)
+    else navigate(`/read/${newsletter.id}${location.search}`, { state: { ids: listIds } })
   }
 
   const markLoadedRead = useCallback((newsletter) => {
@@ -277,7 +279,7 @@ function Inbox() {
           <Pagination page={page} pageSize={pageSize} total={total} count={newsletters.length} hasMore={hasMore} onPrev={() => { setPage(p => Math.max(0, p - 1)); setSelectedId(null) }} onNext={() => { setPage(p => p + 1); setSelectedId(null) }} />
         </section>
 
-        <PreviewPane selectedId={selectedId} archivedView={filter === 'archived'} onLoaded={markLoadedRead} onToggleStar={toggleStar} onArchive={archiveNewsletter} onMarkUnread={markUnread} />
+        <PreviewPane selectedId={selectedId} listIds={listIds} archivedView={filter === 'archived'} onLoaded={markLoadedRead} onToggleStar={toggleStar} onArchive={archiveNewsletter} onMarkUnread={markUnread} />
       </main>
     </div>
   )
@@ -287,7 +289,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Inbox />} />
-      <Route path="/read/:id" element={<ReaderStub />} />
+      <Route path="/read/:id" element={<ReaderPage />} />
     </Routes>
   )
 }

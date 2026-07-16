@@ -1,4 +1,4 @@
-﻿# newsletter-app
+# newsletter-app
 
 Newsletter reader for the Gmail `Newsletters` label. The app is currently deployed at `https://newsletter.zo-bot.com`; the planned single-origin migration to `zo-bot.com/newsletter` has not happened yet.
 
@@ -28,7 +28,7 @@ const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
 Routes:
 
 - `/` renders the inbox shell.
-- `/read/:id` renders the minimal full-screen reader stub. Phase 3 replaces this with the complete reader.
+- `/read/:id` renders the full-screen light reader with toolbar actions, Gmail Original link, keyboard/touch navigation, and router-state prev/next.
 
 Inbox state lives in URL search params, not local-only state:
 
@@ -46,7 +46,7 @@ The Phase 2 UI is a Meco-style inbox shell:
 
 - Dark left sidebar at `lg` and up with Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, Mark all read, and a visible Zo-Bot home link.
 - Redesigned list pane with search, date groups, snippets, unread dots, star/archive controls, read-time labels, selected highlight, and the existing 25/page server pagination.
-- Light preview pane at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id`.
+- Light preview pane at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id` with current list ids in router state.
 - Below `lg` (under 1024px), the sidebar becomes a drawer, filter tabs appear above the list, there is no preview pane, and tapping a row navigates to `/read/:id`.
 
 Do not add categories, AI features, Read Later, a TOC, progress bar, or text-size controls for this program.
@@ -62,8 +62,8 @@ Key files:
 - `server/routes.js` - API routes, server-side FTS search, counts, sender counts, read/star/archive state changes, and sync.
 - `server/readability.js` - sanitizes newsletter HTML for iframe rendering.
 
-Current API shape is defined by `server/routes.js`; trust it over stale notes elsewhere. `GET /api/newsletters/:id` marks the newsletter read unless `?mark_read=0` is passed. The reader iframe sandbox attributes are intentionally unchanged in Phase 2: `sandbox="allow-same-origin allow-popups"` and `referrerPolicy="no-referrer"`.
+Current API shape is defined by `server/routes.js`; trust it over stale notes elsewhere. `GET /api/newsletters/:id` marks the newsletter read unless `?mark_read=0` is passed. Reader and preview iframes use `sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"` with `referrerPolicy="no-referrer"`; do not add `allow-scripts`. `server/readability.js` emits `<base target="_blank">` so newsletter links open outside the sandbox.
 
 ## Deployment Notes
 
-Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. Phase 2 does not change nginx, the Vite `base`, service worker behavior, server routes, Gmail ingestion, or the SQLite schema.
+Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. Phase 3 does not change nginx, the Vite `base`, service worker behavior, server routes, Gmail ingestion, or the SQLite schema.

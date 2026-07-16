@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiUrl } from '../api.js'
 import SenderAvatar from './SenderAvatar.jsx'
@@ -16,7 +16,7 @@ function ActionButton({ label, children, onClick, active = false }) {
   )
 }
 
-export default function PreviewPane({ selectedId, archivedView, onLoaded, onToggleStar, onArchive, onMarkUnread }) {
+export default function PreviewPane({ selectedId, listIds = [], archivedView, onLoaded, onToggleStar, onArchive, onMarkUnread }) {
   const [newsletter, setNewsletter] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -91,7 +91,7 @@ export default function PreviewPane({ selectedId, archivedView, onLoaded, onTogg
             <ActionButton label="Mark unread" onClick={async () => { await onMarkUnread(newsletter?.id); setNewsletter(n => n ? { ...n, read_at: null } : n) }}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l8.2 5.5a1.5 1.5 0 0 0 1.6 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" /></svg>
             </ActionButton>
-            <ActionButton label="Expand" onClick={() => navigate(`/read/${selectedId}${location.search}`)}>
+            <ActionButton label="Expand" onClick={() => navigate(`/read/${selectedId}${location.search}`, { state: { ids: listIds } })}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" /></svg>
             </ActionButton>
           </div>
@@ -103,7 +103,7 @@ export default function PreviewPane({ selectedId, archivedView, onLoaded, onTogg
           <iframe
             key={newsletter.id}
             srcDoc={body}
-            sandbox="allow-same-origin allow-popups"
+            sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
             referrerPolicy="no-referrer"
             className="h-full w-full flex-1 border-0"
             title={newsletter?.subject}
