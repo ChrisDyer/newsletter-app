@@ -4,11 +4,17 @@ import { toReaderHtml } from './readability.js'
 const LIST_FIELDS = `n.id, n.gmail_id, n.from_name, n.from_email, n.subject, n.date, n.internal_date,
   n.snippet, n.read_at, n.starred, n.archived_at, n.reading_minutes`
 
+function parseSince(value) {
+  const since = Number(value)
+  return Number.isFinite(since) ? since : null
+}
+
 // Build the WHERE clause + params shared by the list and its count, from filter/sender.
 // All columns are qualified with `n.` because the FTS join exposes overlapping names.
 function buildFilter(req) {
   const filter = req.query.filter || 'all' // all | unread | starred | archived
   const sender = (req.query.sender || '').trim()
+  const since = parseSince(req.query.since)
   const clauses = []
   const params = []
 
@@ -17,6 +23,7 @@ function buildFilter(req) {
   if (filter === 'unread') clauses.push('n.read_at IS NULL')
   if (filter === 'starred') clauses.push('n.starred = 1')
   if (sender) { clauses.push('n.from_email = ?'); params.push(sender) }
+  if (since !== null) { clauses.push('n.internal_date >= ?'); params.push(since) }
 
   return { where: clauses.join(' AND '), params }
 }
@@ -88,6 +95,29 @@ export function registerRoutes(app, db) {
     res.json(rows)
   })
 
+  app.get('/api/counts', (req, res) => {
+    const since = parseSince(req.query.since)
+    const today = since === null
+      ? 0
+      : db.prepare(
+        'SELECT COUNT(*) AS n FROM newsletters WHERE internal_date >= ? AND archived_at IS NULL'
+      ).get(since).n
+    const unread = db.prepare(
+      'SELECT COUNT(*) AS n FROM newsletters WHERE read_at IS NULL AND archived_at IS NULL'
+    ).get().n
+    const starred = db.prepare(
+      'SELECT COUNT(*) AS n FROM newsletters WHERE starred = 1 AND archived_at IS NULL'
+    ).get().n
+    const archived = db.prepare(
+      'SELECT COUNT(*) AS n FROM newsletters WHERE archived_at IS NOT NULL'
+    ).get().n
+    const total = db.prepare(
+      'SELECT COUNT(*) AS n FROM newsletters WHERE archived_at IS NULL'
+    ).get().n
+
+    res.json({ today, unread, starred, archived, total })
+  })
+
   // Compact counts for the cross-app homepage dashboard.
   app.get('/api/summary', (req, res) => {
     const total = db.prepare('SELECT COUNT(*) AS n FROM newsletters').get().n
@@ -101,7 +131,8 @@ export function registerRoutes(app, db) {
     const row = db.prepare('SELECT * FROM newsletters WHERE id = ?').get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
     // Mark read on open.
-    const newly_read = !row.read_at
+    const shouldMarkRead = req.query.mark_read !== '0'
+    const newly_read = shouldMarkRead && !row.read_at
     if (newly_read) {
       const now = new Date().toISOString()
       db.prepare('UPDATE newsletters SET read_at = ? WHERE id = ?').run(now, row.id)
