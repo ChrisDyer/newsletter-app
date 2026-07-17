@@ -42,12 +42,14 @@ Every frontend fetch must go through `src/api.js` `apiUrl(path)`, which prefixes
 
 ## UI
 
-The Phase 2 UI is a Meco-style inbox shell:
+The current UI is a site-wide aligned light workspace with a local Newsletter adapter:
 
-- Dark left sidebar at `lg` and up with Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, Mark all read, and a standalone-only `Zo-Bot Home` link back to `/`.
-- Redesigned list pane with search, date groups, snippets, unread dots, star/archive controls, read-time labels, selected highlight, and the existing 25/page server pagination.
-- Light preview pane at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id` with current list ids in router state.
-- Below `lg` (under 1024px), the sidebar becomes a drawer, filter tabs appear above the list, there is no preview pane, and tapping a row navigates to `/read/:id`.
+- Desktop uses the canonical slate Zo-Bot sidebar with an app switcher at the top, followed by local Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, and Mark all read.
+- Mobile uses a white header with the global app switcher. Local filters remain in the inbox tabs/drawer and are separate from global app switching.
+- The full-screen reader keeps a compact app-switcher affordance in its toolbar.
+- The list pane keeps search, date groups, snippets, unread dots, star/archive controls, read-time labels, selected highlight, and the existing 25/page server pagination.
+- The light preview pane remains at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id` with current list ids in router state.
+- Below `lg` (under 1024px), there is no preview pane and tapping a row navigates to `/read/:id`.
 
 Do not add categories, AI features, Read Later, a TOC, progress bar, or text-size controls for this program.
 

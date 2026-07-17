@@ -9,7 +9,7 @@ function ActionButton({ label, children, onClick, active = false }) {
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${active ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'}`}
+      className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${active ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-950'}`}
     >
       {children}
     </button>
@@ -55,8 +55,8 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
 
   if (!selectedId) {
     return (
-      <section className="hidden min-w-0 flex-1 p-4 lg:block">
-        <div className="flex h-full items-center justify-center rounded-md border border-gray-800 bg-gray-900/35 text-sm text-gray-500">
+      <section className="hidden min-w-0 flex-1 bg-slate-50 p-4 lg:block">
+        <div className="flex h-full items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500 shadow-sm">
           Select a newsletter to read
         </div>
       </section>
@@ -66,17 +66,17 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
   const body = newsletter?.reader_html
 
   return (
-    <section className="hidden min-w-0 flex-1 p-4 lg:block">
-      <div className="flex h-full flex-col overflow-hidden rounded-md bg-white text-gray-950 shadow-2xl">
-        <header className="flex shrink-0 items-start gap-3 border-b border-gray-200 px-5 py-4">
-          {newsletter ? <SenderAvatar name={newsletter.from_name} email={newsletter.from_email} size="lg" /> : <div className="h-11 w-11 shrink-0 rounded-full bg-gray-200" />}
+    <section className="hidden min-w-0 flex-1 bg-slate-50 p-4 lg:block">
+      <div className="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-950 shadow-sm">
+        <header className="flex shrink-0 items-start gap-3 border-b border-slate-200 px-5 py-4">
+          {newsletter ? <SenderAvatar name={newsletter.from_name} email={newsletter.from_email} size="lg" /> : <div className="h-11 w-11 shrink-0 rounded-full bg-slate-200" />}
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-lg font-semibold text-gray-950">{newsletter?.subject || 'Loading...'}</h2>
-            <p className="mt-1 truncate text-sm text-gray-600">
+            <h2 className="truncate text-lg font-semibold text-slate-950">{newsletter?.subject || 'Loading...'}</h2>
+            <p className="mt-1 truncate text-sm text-slate-600">
               {newsletter ? `${newsletter.from_name || 'Unknown'} <${newsletter.from_email || 'unknown'}>` : ''}
             </p>
             {newsletter && (
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 {new Date(Number(newsletter.internal_date) || newsletter.date).toLocaleString()} {newsletter.reading_minutes ? `- ${newsletter.reading_minutes} min read` : ''}
               </p>
             )}
@@ -97,8 +97,8 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
           </div>
         </header>
 
-        {loading && <div className="flex flex-1 items-center justify-center text-sm text-gray-500">Loading...</div>}
-        {error && <div className="flex flex-1 items-center justify-center text-sm text-red-600">{error}</div>}
+        {loading && <div className="flex flex-1 items-center justify-center text-sm text-slate-500">Loading...</div>}
+        {error && <div className="flex flex-1 items-center justify-center text-sm text-red-700">{error}</div>}
         {!loading && !error && body && (
           <iframe
             key={newsletter.id}

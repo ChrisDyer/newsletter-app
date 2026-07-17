@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { apiUrl } from '../api.js'
+import AppSwitcher from '../appShell/AppSwitcher.jsx'
 import SenderAvatar from './SenderAvatar.jsx'
 
 function IconButton({ label, children, onClick, disabled = false, active = false }) {
@@ -13,7 +14,7 @@ function IconButton({ label, children, onClick, disabled = false, active = false
       className={`inline-flex h-10 w-10 items-center justify-center rounded-md border transition-colors disabled:pointer-events-none disabled:opacity-30 ${
         active
           ? 'border-amber-200 bg-amber-100 text-amber-700'
-          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-950'
+          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-950'
       }`}
     >
       {children}
@@ -26,7 +27,7 @@ function TextButton({ children, onClick, disabled = false }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 disabled:pointer-events-none disabled:opacity-30"
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 disabled:pointer-events-none disabled:opacity-30"
     >
       {children}
     </button>
@@ -210,18 +211,21 @@ export default function ReaderPage() {
 
   return (
     <main
-      className="min-h-screen bg-white text-gray-950"
+      className="min-h-screen bg-white text-slate-950"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       <div className="flex min-h-screen w-full flex-col">
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-          <header className="shrink-0 border-b border-gray-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-5">
+          <header className="shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <TextButton onClick={goBack}>
+              <div className="flex min-w-0 items-center gap-2">
+                <AppSwitcher placement="reader-toolbar" />
+                <TextButton onClick={goBack}>
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Back to newsletters
               </TextButton>
+              </div>
               <div className="flex items-center gap-2">
                 {hasStateNavigation && (
                   <>
@@ -253,12 +257,12 @@ export default function ReaderPage() {
             </div>
 
             <div className="mt-4 flex items-start gap-3">
-              {newsletter ? <SenderAvatar name={newsletter.from_name} email={newsletter.from_email} size="lg" /> : <div className="h-11 w-11 shrink-0 rounded-full bg-gray-200" />}
+              {newsletter ? <SenderAvatar name={newsletter.from_name} email={newsletter.from_email} size="lg" /> : <div className="h-11 w-11 shrink-0 rounded-full bg-slate-200" />}
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-semibold leading-tight text-gray-950 sm:text-2xl">{newsletter?.subject || 'Newsletter'}</h1>
+                <h1 className="text-xl font-semibold leading-tight text-slate-950 sm:text-2xl">{newsletter?.subject || 'Newsletter'}</h1>
                 {newsletter && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    <span className="font-medium text-gray-800">{newsletter.from_name || 'Unknown'}</span>
+                  <p className="mt-1 text-sm text-slate-600">
+                    <span className="font-medium text-slate-800">{newsletter.from_name || 'Unknown'}</span>
                     {newsletter.from_email ? ` <${newsletter.from_email}>` : ''}
                     {dateLabel ? ` - ${dateLabel}` : ''}
                     {newsletter.reading_minutes ? ` - ${newsletter.reading_minutes} min read` : ''}
@@ -268,8 +272,8 @@ export default function ReaderPage() {
             </div>
           </header>
 
-          {loading && <div className="flex flex-1 items-center justify-center text-sm text-gray-500">Loading...</div>}
-          {error && <div className="flex flex-1 items-center justify-center text-sm text-red-600">{error}</div>}
+          {loading && <div className="flex flex-1 items-center justify-center text-sm text-slate-500">Loading...</div>}
+          {error && <div className="flex flex-1 items-center justify-center text-sm text-red-700">{error}</div>}
           {!loading && !error && newsletter?.reader_html && (
             <iframe
               key={newsletter.id}
