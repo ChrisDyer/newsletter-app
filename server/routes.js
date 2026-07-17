@@ -135,13 +135,29 @@ export function registerRoutes(app, db) {
     res.json({ today, unread, starred, archived, total })
   })
 
-  // Compact counts for the cross-app homepage dashboard.
+  // Compact counts and unread previews for the cross-app homepage dashboard.
   app.get('/api/summary', (req, res) => {
     const total = db.prepare('SELECT COUNT(*) AS n FROM newsletters').get().n
     const weekAgo = Date.now() - 7 * 86400000
     const recent = db.prepare('SELECT COUNT(*) AS n FROM newsletters WHERE internal_date >= ?').get(weekAgo).n
     const unread = db.prepare('SELECT COUNT(*) AS n FROM newsletters WHERE read_at IS NULL AND archived_at IS NULL').get().n
-    res.json({ total, recent, unread })
+    const latestUnread = db.prepare(`
+      SELECT id, from_name, from_email, subject, internal_date, date, reading_minutes
+      FROM newsletters
+      WHERE read_at IS NULL AND archived_at IS NULL
+      ORDER BY internal_date DESC, id DESC
+      LIMIT 4
+    `).all().map((row) => ({
+      id: row.id,
+      sender: row.from_name || row.from_email || 'Newsletter',
+      subject: row.subject || '(no subject)',
+      internalDate: row.internal_date,
+      date: row.date,
+      readingMinutes: row.reading_minutes,
+      url: `/newsletter/read/${row.id}`,
+    }))
+
+    res.json({ total, recent, unread, latestUnread })
   })
 
   app.get('/api/newsletters/:id', (req, res) => {
