@@ -1,6 +1,6 @@
 # newsletter-app
 
-Newsletter reader for the Gmail `Newsletters` label. The app is currently deployed at `https://newsletter.zo-bot.com`; the planned single-origin migration to `zo-bot.com/newsletter` has not happened yet.
+Newsletter reader for the Gmail `Newsletters` label. The app is deployed at `https://zo-bot.com/newsletter/`; old `https://newsletter.zo-bot.com/*` permanently 301s there with query strings preserved.
 
 ## Stack
 
@@ -15,7 +15,7 @@ npm start            # Start the production Express server
 npm run oauth-setup  # One-time Gmail refresh token setup
 ```
 
-Vite does not pin a dev port in `vite.config.js`; do not assume 5174. It is usually 5173 when free.
+Vite does not pin a dev port in `vite.config.js`; do not assume 5174. It is usually 5173 when free. Production Vite builds use `base: '/newsletter/'`; dev stays `/`.
 
 ## Frontend Architecture
 
@@ -44,7 +44,7 @@ Every frontend fetch must go through `src/api.js` `apiUrl(path)`, which prefixes
 
 The Phase 2 UI is a Meco-style inbox shell:
 
-- Dark left sidebar at `lg` and up with Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, Mark all read, and a visible Zo-Bot home link.
+- Dark left sidebar at `lg` and up with Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, Mark all read, and a standalone-only `Zo-Bot Home` link back to `/`.
 - Redesigned list pane with search, date groups, snippets, unread dots, star/archive controls, read-time labels, selected highlight, and the existing 25/page server pagination.
 - Light preview pane at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id` with current list ids in router state.
 - Below `lg` (under 1024px), the sidebar becomes a drawer, filter tabs appear above the list, there is no preview pane, and tapping a row navigates to `/read/:id`.
@@ -66,4 +66,11 @@ Current API shape is defined by `server/routes.js`; trust it over stale notes el
 
 ## Deployment Notes
 
-Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. Phase 3 does not change nginx, the Vite `base`, service worker behavior, server routes, Gmail ingestion, or the SQLite schema.
+Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. nginx serves `zo-bot.com/newsletter/` through the apex vhost with the `/newsletter` prefix stripped before proxying to `localhost:3002`; the old `newsletter.zo-bot.com` vhost remains on disk as redirect-only. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
+
+## Plan folders
+
+New multi-phase plans go under `docs/plans/<slug>/` (see
+`docs/plans/2026-07-newsletter-inbox`) with a `PROGRESS.md` per the convention in the
+root `CLAUDE.md`. Register the plan folder in the root `projects.config.json` (path +
+`totalPhases`) and run `node tools/project-status.mjs` from the repo root.
