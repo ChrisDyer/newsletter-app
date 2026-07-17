@@ -1,18 +1,24 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { apiUrl } from '../api.js'
 
 export default function SyncButton({ onSynced }) {
   const [syncing, setSyncing] = useState(false)
+  const [reconnecting, setReconnecting] = useState(false)
   const [lastResult, setLastResult] = useState(null)
   const [error, setError] = useState(null)
+  const [canReconnect, setCanReconnect] = useState(false)
 
   async function handleSync() {
     setSyncing(true)
     setError(null)
+    setCanReconnect(false)
     try {
       const res = await fetch(apiUrl('/api/sync'), { method: 'POST' })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Sync failed')
+      if (!res.ok) {
+        setCanReconnect(Boolean(data.reconnect))
+        throw new Error(data.action || data.error || 'Sync failed')
+      }
       setLastResult(data)
       onSynced?.(data)
     } catch (err) {
@@ -22,11 +28,25 @@ export default function SyncButton({ onSynced }) {
     }
   }
 
+  async function handleReconnect() {
+    setReconnecting(true)
+    setError(null)
+    try {
+      const res = await fetch(apiUrl('/api/gmail/oauth/start'), { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not start Gmail reconnect')
+      window.location.href = data.url
+    } catch (err) {
+      setError(err.message)
+      setReconnecting(false)
+    }
+  }
+
   return (
     <div className="space-y-2">
       <button
         onClick={handleSync}
-        disabled={syncing}
+        disabled={syncing || reconnecting}
         className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <svg
@@ -38,6 +58,15 @@ export default function SyncButton({ onSynced }) {
         </svg>
         {syncing ? 'Syncing...' : 'Sync'}
       </button>
+      {canReconnect && (
+        <button
+          onClick={handleReconnect}
+          disabled={reconnecting}
+          className="w-full px-3 py-2 text-sm font-medium rounded-md bg-amber-500 text-gray-950 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {reconnecting ? 'Opening Google...' : 'Reconnect Gmail'}
+        </button>
+      )}
       {lastResult && !error && (
         <p className="text-xs text-gray-500 text-center">
           {lastResult.added > 0 ? `+${lastResult.added} new` : 'Up to date'}

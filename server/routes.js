@@ -1,8 +1,24 @@
 import { syncNewsletters } from './sync.js'
 import { toReaderHtml } from './readability.js'
+import { registerGmailAuthRoutes } from './gmailAuth.js'
 
 const LIST_FIELDS = `n.id, n.gmail_id, n.from_name, n.from_email, n.subject, n.date, n.internal_date,
   n.snippet, n.read_at, n.starred, n.archived_at, n.reading_minutes`
+
+function gmailAuthError(err) {
+  const apiError = err?.response?.data?.error || err?.code
+  if (apiError !== 'invalid_grant' && err?.message !== 'invalid_grant') return null
+
+  return {
+    status: 401,
+    body: {
+      error: 'Gmail authorization expired. Generate a new GMAIL_REFRESH_TOKEN and restart newsletter-app.',
+      code: 'gmail_invalid_grant',
+      action: 'Reconnect Gmail from the newsletter app, then press Sync again.',
+      reconnect: true,
+    },
+  }
+}
 
 function parseSince(value) {
   const since = Number(value)
@@ -36,6 +52,7 @@ function ftsQuery(q) {
 }
 
 export function registerRoutes(app, db) {
+  registerGmailAuthRoutes(app)
   const PAGE_SIZE = 25
 
   app.get('/api/newsletters', (req, res) => {
@@ -183,6 +200,8 @@ export function registerRoutes(app, db) {
       res.json({ ...result, lastSync })
     } catch (err) {
       console.error('[sync] error:', err)
+      const authError = gmailAuthError(err)
+      if (authError) return res.status(authError.status).json(authError.body)
       res.status(500).json({ error: err.message })
     } finally {
       syncing = false
