@@ -1,6 +1,8 @@
 # Newsletter Inbox Redesign + Single-Origin Migration — Progress
 
-> **Status: Phase 3 reader route deployed and production-confirmed**
+> **Status: All 4 phases complete — program closed out.** Single-origin migration
+> (Phase 4) live at `https://zo-bot.com/newsletter/`; old `newsletter.zo-bot.com`
+> 301-redirects there.
 > Append one report per completed phase. Never rewrite an earlier phase report;
 > later corrections are new dated entries.
 
@@ -69,3 +71,23 @@ Report format for each phase (per root `CLAUDE.md`):
 - VPS-local production spot-check: `http://127.0.0.1:3002/read/439` returned `read_status=200` with SPA root; `GET /api/newsletters/439?mark_read=0` detail response contained `_blank` reader HTML and a detail payload.
 - Public production spot-check at `https://newsletter.zo-bot.com/?filter=unread` in headless Chrome: page title `Newsletters`, 9 rows rendered, tapping a row opened `/read/582?filter=unread` with a reader iframe, and Esc returned to `/?filter=unread`; row `582` was restored unread afterward.
 - `node tools\\ops-check.mjs` from the workspace root passed: `ops-check: OK - 8 apps, README/$PROFILE/docs all consistent`.
+
+## Phase 4 - Single origin: zo-bot.com/newsletter - 2026-07-16
+
+**Status:** complete-with-deviations
+**What was built/done:** `vite.config.js` flipped to `base: '/newsletter/'` in production (dev stays `/`). nginx on the apex `zo-bot.com` vhost now proxies `location /newsletter/` to `localhost:3002` with the prefix stripped; the old `newsletter` vhost was reduced to a redirect-only `return 301 https://zo-bot.com/newsletter$request_uri;`. `homepage/index.html` (`nav-newsletter` href and the `URLS.newsletter` map feeding the `N` shortcut) now points at `/newsletter` instead of the subdomain (homepage commit `0ebc70e`, deployed separately via `Deploy-Homepage`). `homepage/sw.js` was not touched, per the plan's locked decision. Root `README.md` and both apps' `CLAUDE.md` were updated to describe the new URL as current reality. Also added, beyond the original Phase 4 scope: a Gmail OAuth reconnect flow (`server/gmailAuth.js`, `/api/gmail/oauth/*`, a "Reconnect Gmail" button in `SyncButton`) so an expired refresh token can be fixed from the UI instead of a manual `oauth-setup` CLI run.
+**Deviations from spec (and why):** The implementing session's own verification evidence (browser walkthrough, deep-link reload check, Cache Storage inspection, on-device PWA check) was not captured in this file at the time — the migration was built and deployed live, and both apps' code/config plus the ops docs were committed together only in this session, after the fact. The Gmail OAuth reconnect flow is unscoped addition, not part of the original Phase 4 plan. Chris confirmed the migration is live and working and asked to close out the program rather than back-fill the missing verification detail.
+**Known gaps / follow-ups:** No first-hand record of the on-device PWA check (plan step 8) or the Cache Storage inspection (step 7) — the plan calls for both but neither is documented here. If a regression is ever suspected in either area, re-run those two checks manually.
+**Verification evidence:**
+- Current file state confirms the plan's steps: `newsletter-app/CLAUDE.md` documents `base: '/newsletter/'` and the redirect; root `README.md`'s apps table reads `zo-bot.com/newsletter (old newsletter.zo-bot.com 301s here)`; `homepage/index.html:284,312` point at `/newsletter`; `homepage/sw.js` has no commits since Phase 3 (PWA shell), confirming it was left alone.
+- Workspace-wide grep for `newsletter.zo-bot.com` returns only historical plan/progress docs (this file, `00-overview.md`, `02-inbox-shell.md`, `04-single-origin-migration.md`, `prompts.md`, and the "old ... 301s here" line in `CLAUDE.md`/`README.md`) — no live code references remain.
+- `node tools/ops-check.mjs` passed after this session's commits.
+- Chris confirmed the migration is live and working in production and asked to mark the program complete.
+
+## Phase 1 (correction) - push-approval block resolved - 2026-07-16
+
+**Status:** complete
+**What was built/done:** No code changes — this corrects the record. Phase 1's own report above says push/deploy were blocked because "approval to push... was rejected by the approval reviewer." That block did not persist: Phase 2's report (same day) shows Chris pushed to `master` and ran `Deploy-Newsletter` successfully, which necessarily included the Phase 1 backend work (`since`/`/api/counts`/`mark_read=0`) already sitting on top of it in the same commit history. Per the PROGRESS.md convention, the original Phase 1 entry is left as-is (it accurately records what was true at that moment); this entry records the correction instead of rewriting it.
+**Deviations from spec (and why):** None beyond the record-keeping gap itself — nothing was ever re-verified against production specifically for Phase 1's endpoints in isolation, since Phase 2 and later sessions built on top of them without incident.
+**Known gaps / follow-ups:** None.
+**Verification evidence:** Phase 2's report entry above: "Post-deploy: Chris pushed the commit to `master`, ran `Deploy-Newsletter`, and confirmed production site shows new Phase 2 shell" — this is only possible if the Phase 1 push/deploy block was already cleared by that point.
