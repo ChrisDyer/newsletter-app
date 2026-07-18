@@ -11,7 +11,7 @@ const NAV_ITEMS = [
 
 function CountBadge({ value, active = false }) {
   if (!value) return null
-  return <span className={`ml-auto rounded-full px-2 py-0.5 text-xs tabular-nums ${active ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-300'}`}>{value}</span>
+  return <span className={`ml-auto rounded-full px-2 py-0.5 text-xs tabular-nums ${active ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>{value}</span>
 }
 
 export default function Sidebar({

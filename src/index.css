@@ -1,1 +1,47 @@
 @import "tailwindcss";
+
+/*
+ * Design tokens mapped to the canonical site-wide UI contract
+ * (docs/plans/2026-07-site-wide-ui/STYLE-GUIDE.md). Declared under Tailwind v4's
+ * `@theme` so they generate matching utilities and give the workspace one documented
+ * source of truth; component classes should use slate/blue utilities rendering these
+ * exact values.
+ */
+@theme {
+  /* Surfaces */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  /* Text */
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-subtle: #94a3b8;
+
+  /* Semantic: -700 shades per the style guide. */
+  --color-accent: #2563eb;
+  --color-accent-strong: #1d4ed8;
+  --color-accent-subtle: #eff6ff;
+  --color-success: #15803d;
+  --color-success-subtle: #f0fdf4;
+  --color-warning: #b45309;
+  --color-warning-subtle: #fffbeb;
+  --color-danger: #b91c1c;
+  --color-danger-subtle: #fef2f2;
+
+  /* Radii: cards are 12px (2026-07-17 guide amendment); everything else <= 8px. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-card: 12px;
+
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 8px -2px rgb(15 23 42 / 0.08);
+}
+
+:root {
+  --sidebar-width: 14rem; /* 224px canonical desktop sidebar */
+  --focus-ring: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent);
+}

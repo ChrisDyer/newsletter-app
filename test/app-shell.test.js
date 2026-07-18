@@ -31,6 +31,23 @@ test('app switcher is present in inbox and reader chrome', async () => {
   assert.doesNotMatch(sidebar, /Zo-Bot Home/)
 })
 
+test('app switcher follows the canonical presentation appendix', async () => {
+  const switcher = await readFile(new URL('../src/appShell/AppSwitcher.jsx', import.meta.url), 'utf8')
+
+  // Canonical glyph set embedded as lucide path data.
+  assert.ok(switcher.includes('M17.8 19.2 16 11l3.5-3.5'), 'plane glyph')
+  assert.ok(switcher.includes('m22 7-8.991 5.727'), 'mail glyph')
+  assert.ok(switcher.includes('M14 2v5a1 1 0 0 0 1 1h5'), 'file-text glyph')
+  // Dark slate-950 dropdown surface in both placements; no light menu variant.
+  assert.match(switcher, /bg-slate-950/)
+  assert.doesNotMatch(switcher, /w-64 rounded-md border border-slate-200 bg-white/)
+  // Every destination, current app included, is a real link — no inert button branch.
+  assert.doesNotMatch(switcher, /selectCurrentApp/)
+  assert.match(switcher, /aria-current=\{current \? 'page' : undefined\}/)
+  // Reader keeps its compact placement.
+  assert.match(switcher, /reader-toolbar/)
+})
+
 test('protected newsletter behaviors remain in source', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   const preview = await readFile(new URL('../src/components/PreviewPane.jsx', import.meta.url), 'utf8')
