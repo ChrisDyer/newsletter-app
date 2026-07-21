@@ -64,11 +64,11 @@ Key files:
 - `server/routes.js` - API routes, server-side FTS search, counts, sender counts, read/star/archive state changes, and sync.
 - `server/readability.js` - sanitizes newsletter HTML for iframe rendering.
 
-Current API shape is defined by `server/routes.js`; trust it over stale notes elsewhere. `GET /api/newsletters/:id` marks the newsletter read unless `?mark_read=0` is passed. Reader and preview iframes use `sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"` with `referrerPolicy="no-referrer"`; do not add `allow-scripts`. `server/readability.js` emits `<base target="_blank">` so newsletter links open outside the sandbox.
+Current API shape is defined by `server/routes.js`; trust it over stale notes elsewhere. `GET /api/me` returns the Cloudflare Access email and `readOnly` role. `GET /api/newsletters/:id` marks the newsletter read unless `?mark_read=0` is passed or the request is from a read-only user. Reader and preview iframes use `sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"` with `referrerPolicy="no-referrer"`; do not add `allow-scripts`. `server/readability.js` emits `<base target="_blank">` so newsletter links open outside the sandbox.
 
 ## Deployment Notes
 
-Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. nginx serves `zo-bot.com/newsletter/` through the apex vhost with the `/newsletter` prefix stripped before proxying to `localhost:3002`; the old `newsletter.zo-bot.com` vhost remains on disk as redirect-only. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
+Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. `ADMIN_EMAILS` is an optional comma-separated allowlist of Cloudflare Access emails with write access; empty or unset leaves all authenticated users writable, and non-admin users get `403 {"error":"read_only"}` for mutating requests while read-only UI hides Sync, Mark all read, Gmail reconnect, star, archive/restore, and mark-unread controls. nginx serves `zo-bot.com/newsletter/` through the apex vhost with the `/newsletter` prefix stripped before proxying to `localhost:3002`; the old `newsletter.zo-bot.com` vhost remains on disk as redirect-only. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
 
 ## Plan folders
 

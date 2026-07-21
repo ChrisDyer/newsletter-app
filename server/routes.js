@@ -55,6 +55,10 @@ export function registerRoutes(app, db) {
   registerGmailAuthRoutes(app)
   const PAGE_SIZE = 25
 
+  app.get('/api/me', (req, res) => {
+    res.json({ email: req.userEmail ?? null, readOnly: Boolean(req.readOnly) })
+  })
+
   app.get('/api/newsletters', (req, res) => {
     const page = Math.max(0, parseInt(req.query.page) || 0)
     const offset = page * PAGE_SIZE
@@ -164,7 +168,7 @@ export function registerRoutes(app, db) {
     const row = db.prepare('SELECT * FROM newsletters WHERE id = ?').get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
     // Mark read on open.
-    const shouldMarkRead = req.query.mark_read !== '0'
+    const shouldMarkRead = req.query.mark_read !== '0' && !req.readOnly
     const newly_read = shouldMarkRead && !row.read_at
     if (newly_read) {
       const now = new Date().toISOString()

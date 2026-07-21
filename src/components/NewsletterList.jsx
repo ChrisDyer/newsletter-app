@@ -59,7 +59,7 @@ function StarButton({ starred, onClick }) {
   )
 }
 
-export default function NewsletterList({ newsletters, selectedId, onSelect, onToggleStar, onArchive, archivedView }) {
+export default function NewsletterList({ newsletters, selectedId, onSelect, onToggleStar, onArchive, archivedView, readOnly = false }) {
   if (newsletters.length === 0) {
     return <p className="p-5 text-sm text-slate-500">No newsletters found.</p>
   }
@@ -104,6 +104,7 @@ export default function NewsletterList({ newsletters, selectedId, onSelect, onTo
                         {n.from_email ? <span className="truncate">{n.from_email}</span> : null}
                       </div>
                     </div>
+                    {!readOnly && (
                     <div className="flex flex-col items-end gap-2 pt-0.5" onClick={e => e.stopPropagation()}>
                       <StarButton starred={!!n.starred} onClick={stop(() => onToggleStar(n.id))} />
                       <button
@@ -119,6 +120,7 @@ export default function NewsletterList({ newsletters, selectedId, onSelect, onTo
                         </svg>
                       </button>
                     </div>
+                    )}
                   </button>
                 </li>
               )

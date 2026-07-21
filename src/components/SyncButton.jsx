@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { apiUrl } from '../api.js'
+import { apiFetch } from '../api.js'
 
 export default function SyncButton({ onSynced }) {
   const [syncing, setSyncing] = useState(false)
@@ -13,7 +13,7 @@ export default function SyncButton({ onSynced }) {
     setError(null)
     setCanReconnect(false)
     try {
-      const res = await fetch(apiUrl('/api/sync'), { method: 'POST' })
+      const res = await apiFetch('/api/sync', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) {
         setCanReconnect(Boolean(data.reconnect))
@@ -32,7 +32,7 @@ export default function SyncButton({ onSynced }) {
     setReconnecting(true)
     setError(null)
     try {
-      const res = await fetch(apiUrl('/api/gmail/oauth/start'), { method: 'POST' })
+      const res = await apiFetch('/api/gmail/oauth/start', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not start Gmail reconnect')
       window.location.href = data.url

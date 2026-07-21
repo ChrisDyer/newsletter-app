@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import express from 'express'
+import { accessGate } from './server/accessGate.js'
 import { initDb } from './server/db.js'
 import { registerRoutes } from './server/routes.js'
 import { syncNewsletters } from './server/sync.js'
@@ -18,19 +19,10 @@ const app = express()
 app.use(express.json())
 
 // Defense-in-depth: this server.js is the production entrypoint (dev uses the Vite
-// plugin), so it always sits behind Cloudflare Access. Require the identity header
-// Cloudflare injects; its absence means Access was bypassed/misconfigured. Set
-// ALLOW_NO_ACCESS_HEADER=1 only to smoke-test the production build locally.
-if (process.env.ALLOW_NO_ACCESS_HEADER !== '1') {
-  app.use((req, res, next) => {
-    if (req.headers['cf-access-authenticated-user-email']) return next()
-    // Allow same-VPS server-to-server calls (e.g. the homepage dashboard) that present
-    // the shared internal token instead of going through Cloudflare Access.
-    const token = process.env.INTERNAL_API_TOKEN
-    if (token && req.headers['x-internal-token'] === token) return next()
-    return res.status(403).send('Forbidden')
-  })
-}
+// plugin), so it always sits behind Cloudflare Access. Require Cloudflare identity
+// unless ALLOW_NO_ACCESS_HEADER=1, exempt same-VPS internal-token calls, and treat
+// non-admin Access users as read-only when ADMIN_EMAILS is configured.
+app.use(accessGate)
 
 const db = initDb(DB_PATH)
 registerRoutes(app, db)

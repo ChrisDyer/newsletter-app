@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { apiUrl } from './api.js'
+import { apiFetch, apiUrl } from './api.js'
 import AppSwitcher from './appShell/AppSwitcher.jsx'
 import NewsletterList from './components/NewsletterList.jsx'
 import PreviewPane from './components/PreviewPane.jsx'
 import ReaderPage from './components/ReaderPage.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import Sidebar from './components/Sidebar.jsx'
+import { useReadOnly } from './readOnly.jsx'
 
 const FILTERS = ['all', 'today', 'unread', 'starred', 'archived']
 const MOBILE_TABS = [
@@ -107,6 +108,7 @@ function ConfirmDialog({ open, unreadCount, busy, onCancel, onConfirm }) {
 }
 
 function Inbox() {
+  const { readOnly } = useReadOnly()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -239,7 +241,7 @@ function Inbox() {
 
   async function toggleStar(id) {
     if (!id) return null
-    const res = await fetch(apiUrl(`/api/newsletters/${id}/star`), { method: 'POST' })
+    const res = await apiFetch(`/api/newsletters/${id}/star`, { method: 'POST' })
     const data = await res.json().catch(() => null)
     if (data) setNewsletters(prev => prev.map(n => n.id === id ? { ...n, starred: data.starred } : n))
     refreshMeta()
@@ -250,7 +252,7 @@ function Inbox() {
   async function archiveNewsletter(id) {
     if (!id) return null
     const archived = filter !== 'archived'
-    const res = await fetch(apiUrl(`/api/newsletters/${id}/archive`), {
+    const res = await apiFetch(`/api/newsletters/${id}/archive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ archived }),
@@ -263,7 +265,7 @@ function Inbox() {
 
   async function markUnread(id) {
     if (!id) return null
-    const res = await fetch(apiUrl(`/api/newsletters/${id}/read`), {
+    const res = await apiFetch(`/api/newsletters/${id}/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ read: false }),
@@ -283,7 +285,7 @@ function Inbox() {
     if (!counts.unread || markingAllRead) return
     setMarkingAllRead(true)
     try {
-      await fetch(apiUrl('/api/newsletters/read-all'), { method: 'POST' })
+      await apiFetch('/api/newsletters/read-all', { method: 'POST' })
       const now = new Date().toISOString()
       setNewsletters(prev => prev.map(n => n.read_at ? n : { ...n, read_at: now }))
       refreshPageAndMeta()
@@ -304,6 +306,7 @@ function Inbox() {
     onSynced: refreshPageAndMeta,
     expandedSources,
     onToggleSources: () => setExpandedSources(v => !v),
+    readOnly,
   }
 
   return (
@@ -338,13 +341,13 @@ function Inbox() {
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loading ? <p className="p-5 text-sm text-slate-500">Loading...</p> : (
-              <NewsletterList newsletters={newsletters} selectedId={selectedId} onSelect={selectNewsletter} onToggleStar={toggleStar} onArchive={archiveNewsletter} archivedView={filter === 'archived'} />
+              <NewsletterList newsletters={newsletters} selectedId={selectedId} onSelect={selectNewsletter} onToggleStar={toggleStar} onArchive={archiveNewsletter} archivedView={filter === 'archived'} readOnly={readOnly} />
             )}
           </div>
           <Pagination page={page} pageSize={pageSize} total={total} count={newsletters.length} hasMore={hasMore} onPrev={() => { setPage(p => Math.max(0, p - 1)); setSelectedId(null) }} onNext={() => { setPage(p => p + 1); setSelectedId(null) }} />
         </section>
 
-        <PreviewPane selectedId={selectedId} listIds={listIds} archivedView={filter === 'archived'} onLoaded={markLoadedRead} onToggleStar={toggleStar} onArchive={archiveNewsletter} onMarkUnread={markUnread} />
+        <PreviewPane selectedId={selectedId} listIds={listIds} archivedView={filter === 'archived'} onLoaded={markLoadedRead} onToggleStar={toggleStar} onArchive={archiveNewsletter} onMarkUnread={markUnread} readOnly={readOnly} />
       </main>
       <ConfirmDialog open={confirmReadOpen} unreadCount={counts.unread} busy={markingAllRead} onCancel={() => setConfirmReadOpen(false)} onConfirm={confirmMarkAllRead} />
     </div>

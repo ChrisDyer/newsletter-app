@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { apiUrl } from '../api.js'
+import { apiFetch, apiUrl } from '../api.js'
 import AppSwitcher from '../appShell/AppSwitcher.jsx'
+import { useReadOnly } from '../readOnly.jsx'
 import SenderAvatar from './SenderAvatar.jsx'
 
 function IconButton({ label, children, onClick, disabled = false, active = false }) {
@@ -42,6 +43,7 @@ function displayDate(newsletter) {
 }
 
 export default function ReaderPage() {
+  const { readOnly } = useReadOnly()
   const { id } = useParams()
   const numericId = Number(id)
   const navigate = useNavigate()
@@ -72,13 +74,14 @@ export default function ReaderPage() {
   }, [ids, location.search, navigate])
 
   const markDisplayedRead = useCallback(async (targetId) => {
-    const res = await fetch(apiUrl(`/api/newsletters/${targetId}/read`), {
+    if (readOnly) return
+    const res = await apiFetch(`/api/newsletters/${targetId}/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ read: true }),
     })
     if (!res.ok) throw new Error('Could not mark newsletter read')
-  }, [])
+  }, [readOnly])
 
   useEffect(() => {
     let cancelled = false
@@ -99,7 +102,7 @@ export default function ReaderPage() {
           return
         }
 
-        const res = await fetch(apiUrl(`/api/newsletters/${numericId}`))
+        const res = await fetch(apiUrl(`/api/newsletters/${numericId}${readOnly ? '?mark_read=0' : ''}`))
         if (!res.ok) throw new Error('Could not load newsletter')
         const data = await res.json()
         cacheRef.current.set(numericId, data)
@@ -118,7 +121,7 @@ export default function ReaderPage() {
     }
 
     return () => { cancelled = true }
-  }, [markDisplayedRead, numericId])
+  }, [markDisplayedRead, numericId, readOnly])
 
   useEffect(() => {
     let cancelled = false
@@ -175,7 +178,7 @@ export default function ReaderPage() {
 
   async function toggleStar() {
     if (!newsletter) return
-    const res = await fetch(apiUrl(`/api/newsletters/${newsletter.id}/star`), { method: 'POST' })
+    const res = await apiFetch(`/api/newsletters/${newsletter.id}/star`, { method: 'POST' })
     const data = await res.json().catch(() => null)
     if (data) setNewsletter(n => n ? { ...n, starred: data.starred } : n)
   }
@@ -183,7 +186,7 @@ export default function ReaderPage() {
   async function toggleArchive() {
     if (!newsletter) return
     const archived = !newsletter.archived_at
-    const res = await fetch(apiUrl(`/api/newsletters/${newsletter.id}/archive`), {
+    const res = await apiFetch(`/api/newsletters/${newsletter.id}/archive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ archived }),
@@ -194,7 +197,7 @@ export default function ReaderPage() {
 
   async function markUnread() {
     if (!newsletter) return
-    await fetch(apiUrl(`/api/newsletters/${newsletter.id}/read`), {
+    await apiFetch(`/api/newsletters/${newsletter.id}/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ read: false }),
@@ -237,19 +240,23 @@ export default function ReaderPage() {
                     </IconButton>
                   </>
                 )}
-                <IconButton label={newsletter?.archived_at ? 'Restore' : 'Archive'} disabled={!newsletter} onClick={toggleArchive}>
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {newsletter?.archived_at
-                      ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 10l2-5h14l2 5M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9M10 14l2-2m0 0 2 2m-2-2v6" />
-                      : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8l-1 12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1L19 8M5 8l1-3h12l1 3M10 12h4" />}
-                  </svg>
-                </IconButton>
-                <IconButton label={newsletter?.starred ? 'Unstar' : 'Star'} active={!!newsletter?.starred} disabled={!newsletter} onClick={toggleStar}>
-                  <svg className="h-4 w-4" fill={newsletter?.starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.48 3.5l2 4.06 4.48.65-3.24 3.16.77 4.46-4-2.1-4 2.1.76-4.46L4 8.2l4.48-.65 2-4.06z" /></svg>
-                </IconButton>
-                <IconButton label="Mark unread" disabled={!newsletter} onClick={markUnread}>
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l8.2 5.5a1.5 1.5 0 0 0 1.6 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" /></svg>
-                </IconButton>
+                {!readOnly && (
+                  <>
+                    <IconButton label={newsletter?.archived_at ? 'Restore' : 'Archive'} disabled={!newsletter} onClick={toggleArchive}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {newsletter?.archived_at
+                          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 10l2-5h14l2 5M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9M10 14l2-2m0 0 2 2m-2-2v6" />
+                          : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8l-1 12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1L19 8M5 8l1-3h12l1 3M10 12h4" />}
+                      </svg>
+                    </IconButton>
+                    <IconButton label={newsletter?.starred ? 'Unstar' : 'Star'} active={!!newsletter?.starred} disabled={!newsletter} onClick={toggleStar}>
+                      <svg className="h-4 w-4" fill={newsletter?.starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.48 3.5l2 4.06 4.48.65-3.24 3.16.77 4.46-4-2.1-4 2.1.76-4.46L4 8.2l4.48-.65 2-4.06z" /></svg>
+                    </IconButton>
+                    <IconButton label="Mark unread" disabled={!newsletter} onClick={markUnread}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l8.2 5.5a1.5 1.5 0 0 0 1.6 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" /></svg>
+                    </IconButton>
+                  </>
+                )}
                 <IconButton label="Original" disabled={!newsletter?.gmail_id} onClick={openOriginal}>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M9 7h8v8" /></svg>
                 </IconButton>

@@ -26,6 +26,7 @@ export default function Sidebar({
   expandedSources,
   onToggleSources,
   showAppSwitcher = true,
+  readOnly = false,
 }) {
   const visibleSenders = expandedSources ? senders : senders.slice(0, 8)
 
@@ -97,6 +98,7 @@ export default function Sidebar({
         )}
       </div>
 
+      {!readOnly && (
       <div className="space-y-3 border-t border-slate-800 p-4">
         <SyncButton onSynced={onSynced} />
         <button
@@ -107,6 +109,7 @@ export default function Sidebar({
           Mark all read
         </button>
       </div>
+      )}
     </aside>
   )
 }

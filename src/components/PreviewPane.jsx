@@ -16,7 +16,7 @@ function ActionButton({ label, children, onClick, active = false }) {
   )
 }
 
-export default function PreviewPane({ selectedId, listIds = [], archivedView, onLoaded, onToggleStar, onArchive, onMarkUnread }) {
+export default function PreviewPane({ selectedId, listIds = [], archivedView, onLoaded, onToggleStar, onArchive, onMarkUnread, readOnly = false }) {
   const [newsletter, setNewsletter] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -33,7 +33,7 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
     let cancelled = false
     setLoading(true)
     setError('')
-    fetch(apiUrl(`/api/newsletters/${selectedId}`))
+    fetch(apiUrl(`/api/newsletters/${selectedId}${readOnly ? '?mark_read=0' : ''}`))
       .then(r => {
         if (!r.ok) throw new Error('Could not load newsletter')
         return r.json()
@@ -51,7 +51,7 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
       })
 
     return () => { cancelled = true }
-  }, [selectedId, onLoaded])
+  }, [readOnly, selectedId, onLoaded])
 
   if (!selectedId) {
     return (
@@ -82,15 +82,19 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ActionButton label={newsletter?.starred ? 'Unstar' : 'Star'} active={!!newsletter?.starred} onClick={async () => { const data = await onToggleStar(newsletter?.id); if (data) setNewsletter(n => n ? { ...n, starred: data.starred } : n) }}>
-              <svg className="h-4 w-4" fill={newsletter?.starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.48 3.5l2 4.06 4.48.65-3.24 3.16.77 4.46-4-2.1-4 2.1.76-4.46L4 8.2l4.48-.65 2-4.06z" /></svg>
-            </ActionButton>
-            <ActionButton label={archivedView ? 'Restore' : 'Archive'} onClick={() => onArchive(newsletter?.id)}>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8l-1 12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1L19 8M5 8l1-3h12l1 3M10 12h4" /></svg>
-            </ActionButton>
-            <ActionButton label="Mark unread" onClick={async () => { await onMarkUnread(newsletter?.id); setNewsletter(n => n ? { ...n, read_at: null } : n) }}>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l8.2 5.5a1.5 1.5 0 0 0 1.6 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" /></svg>
-            </ActionButton>
+            {!readOnly && (
+              <>
+                <ActionButton label={newsletter?.starred ? 'Unstar' : 'Star'} active={!!newsletter?.starred} onClick={async () => { const data = await onToggleStar(newsletter?.id); if (data) setNewsletter(n => n ? { ...n, starred: data.starred } : n) }}>
+                  <svg className="h-4 w-4" fill={newsletter?.starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.48 3.5l2 4.06 4.48.65-3.24 3.16.77 4.46-4-2.1-4 2.1.76-4.46L4 8.2l4.48-.65 2-4.06z" /></svg>
+                </ActionButton>
+                <ActionButton label={archivedView ? 'Restore' : 'Archive'} onClick={() => onArchive(newsletter?.id)}>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8l-1 12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1L19 8M5 8l1-3h12l1 3M10 12h4" /></svg>
+                </ActionButton>
+                <ActionButton label="Mark unread" onClick={async () => { await onMarkUnread(newsletter?.id); setNewsletter(n => n ? { ...n, read_at: null } : n) }}>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l8.2 5.5a1.5 1.5 0 0 0 1.6 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" /></svg>
+                </ActionButton>
+              </>
+            )}
             <ActionButton label="Expand" onClick={() => navigate(`/read/${selectedId}${location.search}`, { state: { ids: listIds } })}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" /></svg>
             </ActionButton>
