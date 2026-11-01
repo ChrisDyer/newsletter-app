@@ -10,6 +10,15 @@ import { accessGate } from '../server/accessGate.js'
 import { createPushService, registerPushRoutes, validSubscription } from '../server/push.js'
 import { registerRoutes } from '../server/routes.js'
 
+// routes.js loads dotenv through Gmail/sync imports. Keep fixture owners independent
+// of a developer's or production server's real admin allowlist.
+const initialAdminEmails = process.env.ADMIN_EMAILS
+test.beforeEach(() => { process.env.ADMIN_EMAILS = '' })
+test.afterEach(() => {
+  if (initialAdminEmails === undefined) delete process.env.ADMIN_EMAILS
+  else process.env.ADMIN_EMAILS = initialAdminEmails
+})
+
 function subscription(id = 'one') {
   const curve = createECDH('prime256v1')
   curve.generateKeys()
