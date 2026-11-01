@@ -8,6 +8,7 @@ import ReaderPage from './components/ReaderPage.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import { useReadOnly } from './readOnly.jsx'
+import AppBadge from './components/AppBadge.jsx'
 
 const FILTERS = ['all', 'today', 'unread', 'starred', 'archived']
 const MOBILE_TABS = [
@@ -356,9 +357,12 @@ function Inbox() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Inbox />} />
-      <Route path="/read/:id" element={<ReaderPage />} />
-    </Routes>
+    <>
+      <AppBadge />
+      <Routes>
+        <Route path="/" element={<Inbox />} />
+        <Route path="/read/:id" element={<ReaderPage />} />
+      </Routes>
+    </>
   )
 }

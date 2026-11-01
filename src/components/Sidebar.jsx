@@ -1,6 +1,7 @@
 import AppIdentity from '../appShell/AppIdentity.jsx'
 import SenderAvatar from './SenderAvatar.jsx'
 import SyncButton from './SyncButton.jsx'
+import NotificationSettings from './NotificationSettings.jsx'
 
 const NAV_ITEMS = [
   { key: 'today', label: 'Today' },
@@ -98,6 +99,9 @@ export default function Sidebar({
         )}
       </div>
 
+      {!readOnly && (
+      <NotificationSettings />
+      )}
       {!readOnly && (
       <div className="space-y-3 border-t border-slate-800 p-4">
         <SyncButton onSynced={onSynced} />

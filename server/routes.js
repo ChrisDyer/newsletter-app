@@ -1,6 +1,7 @@
 import { syncNewsletters } from './sync.js'
 import { toReaderHtml } from './readability.js'
 import { registerGmailAuthRoutes } from './gmailAuth.js'
+import { getPushService, registerPushRoutes } from './push.js'
 
 const LIST_FIELDS = `n.id, n.gmail_id, n.from_name, n.from_email, n.subject, n.date, n.internal_date,
   n.snippet, n.read_at, n.starred, n.archived_at, n.reading_minutes`
@@ -53,6 +54,8 @@ function ftsQuery(q) {
 
 export function registerRoutes(app, db) {
   registerGmailAuthRoutes(app)
+  const push = getPushService(db)
+  registerPushRoutes(app, db, push)
   const PAGE_SIZE = 25
 
   app.get('/api/me', (req, res) => {
@@ -136,7 +139,7 @@ export function registerRoutes(app, db) {
       'SELECT COUNT(*) AS n FROM newsletters WHERE archived_at IS NULL'
     ).get().n
 
-    res.json({ today, unread, starred, archived, total })
+    res.json({ today, unread, starred, archived, total, revision: push.badge().revision })
   })
 
   // Compact counts and unread previews for the cross-app homepage dashboard.
@@ -174,6 +177,7 @@ export function registerRoutes(app, db) {
       const now = new Date().toISOString()
       db.prepare('UPDATE newsletters SET read_at = ? WHERE id = ?').run(now, row.id)
       row.read_at = now
+      push.changed()
     }
     res.json({ ...row, newly_read, reader_html: toReaderHtml(row.body_html, row.body_text, { fromName: row.from_name, date: row.date }) })
   })
@@ -185,6 +189,7 @@ export function registerRoutes(app, db) {
   app.post('/api/newsletters/read-all', (req, res) => {
     const info = db.prepare('UPDATE newsletters SET read_at = ? WHERE read_at IS NULL')
       .run(new Date().toISOString())
+    if (info.changes) push.changed()
     res.json({ ok: true, updated: info.changes })
   })
 
@@ -200,6 +205,7 @@ export function registerRoutes(app, db) {
     const read = req.body?.read !== false // default true; pass { read: false } to mark unread
     db.prepare('UPDATE newsletters SET read_at = ? WHERE id = ?')
       .run(read ? new Date().toISOString() : null, req.params.id)
+    push.changed()
     res.json({ id: Number(req.params.id), read })
   })
 
@@ -207,6 +213,7 @@ export function registerRoutes(app, db) {
     const archived = req.body?.archived !== false // default true; { archived: false } to restore
     db.prepare('UPDATE newsletters SET archived_at = ? WHERE id = ?')
       .run(archived ? new Date().toISOString() : null, req.params.id)
+    push.changed()
     res.json({ id: Number(req.params.id), archived })
   })
 

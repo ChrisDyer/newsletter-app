@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { apiFetch, apiUrl } from '../api.js'
 import AppIdentity from '../appShell/AppIdentity.jsx'
 import { useReadOnly } from '../readOnly.jsx'
+import { refreshUnreadBadge } from '../notifications.js'
 import SenderAvatar from './SenderAvatar.jsx'
 
 function IconButton({ label, children, onClick, disabled = false, active = false }) {
@@ -105,6 +106,7 @@ export default function ReaderPage() {
         const res = await fetch(apiUrl(`/api/newsletters/${numericId}${readOnly ? '?mark_read=0' : ''}`))
         if (!res.ok) throw new Error('Could not load newsletter')
         const data = await res.json()
+        if (data.newly_read) refreshUnreadBadge()
         cacheRef.current.set(numericId, data)
         if (!cancelled) setNewsletter(data)
       } catch (err) {

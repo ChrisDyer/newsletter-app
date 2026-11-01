@@ -70,6 +70,27 @@ Current API shape is defined by `server/routes.js`; trust it over stale notes el
 
 Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. `ADMIN_EMAILS` is an optional comma-separated allowlist of Cloudflare Access emails with write access; empty or unset leaves all authenticated users writable, and non-admin users get `403 {"error":"read_only"}` for mutating requests while read-only UI hides Sync, Mark all read, Gmail reconnect, star, archive/restore, and mark-unread controls. nginx serves the newsletter subdomain root through its own vhost proxying to `localhost:3002`; the apex newsletter paths redirect to it. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
 
+## Home Screen notifications
+
+`server/push.js` uses `web-push` and the existing SQLite database. It creates
+`push_settings` (persistent private VAPID credentials), `push_subscriptions`
+(device subscriptions owned by authenticated writable users), and `push_badge`
+(unread count/revision). Existing DB backups include these tables after rollout.
+Never expose private keys or log subscription endpoints. Subscription writes retain
+the Access/admin gate; read-only users do not get notification controls.
+
+`public/sw.js` only handles push, app badge messages, and notification clicks; it
+does not cache private pages or API data. Payloads carry the unread count so a closed
+app need not fetch through Cloudflare Access. Each push displays a notification;
+Safari also gets a declarative fallback. Read/archive changes and successful syncs
+schedule a coalesced notification; duplicate/no-count-change actions are skipped.
+Badge revisions prevent delayed pushes replacing newer counts.
+
+`NotificationSettings` in the sidebar/mobile drawer manages this device's opt-in.
+Permission is requested only on a tap. iPad users must install/open the standalone
+Home Screen app. Sync cadence remains `SYNC_INTERVAL_MINUTES` (default 360); push
+follows sync, not Gmail arrival in real time. See `DEPLOY.md` for rollout and iPad QA.
+
 ## Plan folders
 
 New multi-phase plans go under `docs/plans/<slug>/` (see

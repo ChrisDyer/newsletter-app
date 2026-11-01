@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiUrl } from '../api.js'
+import { refreshUnreadBadge } from '../notifications.js'
 import SenderAvatar from './SenderAvatar.jsx'
 
 function ActionButton({ label, children, onClick, active = false }) {
@@ -39,6 +40,7 @@ export default function PreviewPane({ selectedId, listIds = [], archivedView, on
         return r.json()
       })
       .then(data => {
+        if (data.newly_read) refreshUnreadBadge()
         if (cancelled) return
         setNewsletter(data)
         onLoaded?.(data)

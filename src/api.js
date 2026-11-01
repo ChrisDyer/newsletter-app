@@ -16,5 +16,10 @@ export function apiFetch(path, options = {}) {
   if (readOnly && !SAFE_METHODS.has(method)) {
     throw new Error('This account is read-only.')
   }
-  return fetch(apiUrl(path), options)
+  return fetch(apiUrl(path), options).then(response => {
+    if (response.ok && !SAFE_METHODS.has(method) && !path.startsWith('/api/push/')) {
+      window.dispatchEvent(new Event('newsletter-unread-changed'))
+    }
+    return response
+  })
 }

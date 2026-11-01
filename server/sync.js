@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { getGmailClient, listMessageIds, fetchMessage } from './gmail.js'
 import { readingMinutes } from './db.js'
+import { getPushService } from './push.js'
 
 // Shared guard so a scheduled auto-sync and a manual sync can't run concurrently.
 let running = false
@@ -9,7 +10,9 @@ export async function syncNewsletters(db) {
   if (running) return { total: 0, added: 0, failed: 0, skipped: true }
   running = true
   try {
-    return await runSync(db)
+    const result = await runSync(db)
+    if (result.added) getPushService(db).changed(result.added)
+    return result
   } finally {
     running = false
   }
