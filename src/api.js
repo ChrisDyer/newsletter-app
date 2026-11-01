@@ -1,5 +1,5 @@
 // Prefix an absolute path with the app's base path (import.meta.env.BASE_URL:
-// '/' in dev, '/newsletter/' after the Phase 4 migration).
+// '/' for the standalone app).
 let readOnly = false
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
