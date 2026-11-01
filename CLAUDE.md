@@ -1,6 +1,6 @@
 # newsletter-app
 
-Newsletter reader for the Gmail `Newsletters` label. The app is deployed at `https://zo-bot.com/newsletter/`; old `https://newsletter.zo-bot.com/*` permanently 301s there with query strings preserved.
+Newsletter reader for the Gmail `Newsletters` label. The app is deployed at `https://newsletter.zo-bot.com/`; old `https://zo-bot.com/newsletter/*` redirects here with reader paths and query strings preserved. Cloudflare Access coverage for the new hostname still needs configuration; the origin rejects missing identity headers.
 
 ## Stack
 
@@ -15,7 +15,7 @@ npm start            # Start the production Express server
 npm run oauth-setup  # One-time Gmail refresh token setup
 ```
 
-Vite does not pin a dev port in `vite.config.js`; do not assume 5174. It is usually 5173 when free. Production Vite builds use `base: '/newsletter/'`; dev stays `/`.
+Vite does not pin a dev port in `vite.config.js`; do not assume 5174. It is usually 5173 when free. Production and dev builds use `base: '/'`.
 
 ## Frontend Architecture
 
@@ -44,9 +44,9 @@ Every frontend fetch must go through `src/api.js` `apiUrl(path)`, which prefixes
 
 The current UI is a site-wide aligned light workspace with a local Newsletter adapter:
 
-- Desktop uses the canonical slate Zo-Bot sidebar with an app switcher at the top, followed by local Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, and Mark all read.
-- Mobile uses a white header with the global app switcher. Local filters remain in the inbox tabs/drawer and are separate from global app switching.
-- The full-screen reader keeps a compact app-switcher affordance in its toolbar.
+- Desktop uses the navy sidebar with the independent Newsletters identity at the top, followed by local Today/Unread/Starred/Archived counts from `/api/counts`, sender sources from `/api/senders`, Sync, and Mark all read.
+- Mobile uses a white header with the Newsletters identity. Local filters remain in the inbox tabs/drawer and are separate from global app switching.
+- The full-screen reader keeps the compact Newsletters identity in its toolbar.
 - The list pane keeps search, date groups, snippets, unread dots, star/archive controls, read-time labels, selected highlight, and the existing 25/page server pagination.
 - The light preview pane remains at `lg` and up. Selecting a newsletter fetches `GET /api/newsletters/:id`, which marks it read by design. Preview actions support star, archive/restore, mark unread, and expand to `/read/:id` with current list ids in router state.
 - Below `lg` (under 1024px), there is no preview pane and tapping a row navigates to `/read/:id`.
@@ -68,7 +68,7 @@ Current API shape is defined by `server/routes.js`; trust it over stale notes el
 
 ## Deployment Notes
 
-Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. `ADMIN_EMAILS` is an optional comma-separated allowlist of Cloudflare Access emails with write access; empty or unset leaves all authenticated users writable, and non-admin users get `403 {"error":"read_only"}` for mutating requests while read-only UI hides Sync, Mark all read, Gmail reconnect, star, archive/restore, and mark-unread controls. nginx serves `zo-bot.com/newsletter/` through the apex vhost with the `/newsletter` prefix stripped before proxying to `localhost:3002`; the old `newsletter.zo-bot.com` vhost remains on disk as redirect-only. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
+Production runs on port 3002 under PM2 name `newsletter-app` and is deployed with the workspace `Deploy-Newsletter` PowerShell command. `ADMIN_EMAILS` is an optional comma-separated allowlist of Cloudflare Access emails with write access; empty or unset leaves all authenticated users writable, and non-admin users get `403 {"error":"read_only"}` for mutating requests while read-only UI hides Sync, Mark all read, Gmail reconnect, star, archive/restore, and mark-unread controls. nginx serves the newsletter subdomain root through its own vhost proxying to `localhost:3002`; the apex newsletter paths redirect to it. Do not change homepage `sw.js`, server routes, Gmail ingestion, or the SQLite schema for this migration.
 
 ## Plan folders
 
@@ -76,6 +76,6 @@ New multi-phase plans go under `docs/plans/<slug>/` (see
 `docs/plans/2026-07-newsletter-inbox`) with a `PROGRESS.md` per the convention in the
 root `CLAUDE.md`. Register the plan folder in the root `projects.config.json` (path +
 `totalPhases`) and run `node tools/project-status.mjs` from the repo root.
-## Independent-app migration (2026-11-01, prepared)
+## Independent-app hosting ? 2026-11-01
 
-Current live hosting remains at the apex subpath until the staged interactive-sudo cutover runs. This branch builds for the independent subdomain root and replaces the global app switcher with the app identity. Use the guarded apps cutover in ../docs/plans/2026-11-independent-apps/IMPLEMENTATION.md before deploying these root-path builds. Databases, roles and API payloads are unchanged. After activation, the canonical host is https://newsletter.zo-bot.com/ and ordinary deploys build at root. Old newsletter paths redirect to the new host, preserving reader paths and queries.
+The standalone build, identity, manifest and icon are deployed. ALLOW_NO_ACCESS_HEADER=0 is persisted in the private production .env and PM2 environment. Until the new hostname has a Cloudflare Access application/policy using the existing Chris-and-Kate allowlist, ordinary unauthenticated requests receive 403. Do not re-enable the development bypass to work around this. Databases and Gmail state are unchanged.
