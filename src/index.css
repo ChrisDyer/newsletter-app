@@ -9,20 +9,20 @@
  */
 @theme {
   /* Surfaces */
-  --color-bg: #f8fafc;
+  --color-bg: #F8F9FA;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
-  --color-border: #e2e8f0;
+  --color-surface-muted: #F1F3F3;
+  --color-border: #E7EBEC;
   --color-border-strong: #cbd5e1;
 
   /* Text */
-  --color-text: #0f172a;
+  --color-text: #252B2D;
   --color-text-muted: #475569;
   --color-text-subtle: #94a3b8;
 
   /* Semantic: -700 shades per the style guide. */
-  --color-accent: #2563eb;
-  --color-accent-strong: #1d4ed8;
+  --color-accent: #527595;
+  --color-accent-strong: #426582;
   --color-accent-subtle: #eff6ff;
   --color-success: #15803d;
   --color-success-subtle: #f0fdf4;
@@ -45,3 +45,46 @@
   --sidebar-width: 14rem; /* 224px canonical desktop sidebar */
   --focus-ring: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent);
 }
+
+/* Approved appearance refresh: utility tokens cover existing pages and dialogs. */
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-slate-50: #F8F9FA;
+  --color-slate-100: #F1F3F3;
+  --color-slate-200: #E7EBEC;
+  --color-slate-300: #CBD2D4;
+  --color-slate-400: #727C80;
+  --color-slate-500: #667175;
+  --color-slate-600: #515D62;
+  --color-slate-700: #39474E;
+  --color-slate-800: #303B41;
+  --color-slate-900: #252B2D;
+  --color-blue-500: #6286A6;
+  --color-blue-600: #527595;
+  --color-blue-700: #426582;
+  --color-green-600: #33795F;
+  --color-red-500: #B26066;
+  --color-red-600: #A34F55;
+  --shadow-sm: 0 1px 2px rgb(37 43 45 / 0.025);
+}
+:root {
+  --sidebar-bg: #223A54;
+  --sidebar-selected: #3A5B7E;
+  --sidebar-divider: #39516C;
+  --sidebar-subtle: #2B4562;
+  --sidebar-badge: #314E6E;
+  --gain-positive: #3C8C70;
+  --gain-negative: #B26066;
+}
+body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+.zo-sidebar, .zo-app-menu { background: var(--sidebar-bg); color: #F2F6FC; }
+:is(.zo-sidebar, .zo-app-menu) .text-slate-400,
+:is(.zo-sidebar, .zo-app-menu) .text-slate-300 { color: #C1CFDF; }
+.zo-sidebar .text-slate-500 { color: #A7BAD0; }
+:is(.zo-sidebar, .zo-app-menu) :is(.border-slate-800, .border-slate-700) { border-color: var(--sidebar-divider); }
+:is(.zo-sidebar, .zo-app-menu) :is(.bg-slate-800, .hover\:bg-slate-800:hover, .focus\:bg-slate-800:focus) { background: var(--sidebar-subtle); }
+:is(.zo-sidebar, .zo-app-menu) .bg-blue-600 { background: var(--sidebar-selected); box-shadow: inset 2px 0 #99BFE8; }
+.zo-sidebar .rounded-full { box-shadow: none; background: var(--sidebar-badge); color: #DCE9F8; }
+.zo-sidebar button:focus-visible { outline: 2px solid #99BFE8; outline-offset: 2px; }
+.zo-app-menu { border-color: var(--sidebar-divider); }
+.recharts-cartesian-grid line { stroke: #E7EBEC; }

@@ -31,7 +31,7 @@ export default function Sidebar({
   const visibleSenders = expandedSources ? senders : senders.slice(0, 8)
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-900 text-slate-100">
+    <aside className="zo-sidebar flex h-full w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-900 text-slate-100">
       {showAppSwitcher ? (
         <AppSwitcher placement="sidebar" />
       ) : (

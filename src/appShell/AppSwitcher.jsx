@@ -107,8 +107,8 @@ export default function AppSwitcher({ placement = 'sidebar' }) {
           onKeyDown={handleMenuKeyDown}
           className={
             isMobile
-              ? 'absolute left-0 top-full z-50 mt-2 w-64 rounded-md border border-slate-700 bg-slate-950 p-1.5 shadow-lg'
-              : 'absolute left-2 right-2 top-full z-50 rounded-md border border-slate-700 bg-slate-950 p-1.5 shadow-lg'
+              ? 'zo-app-menu absolute left-0 top-full z-50 mt-2 w-64 rounded-md border border-slate-700 bg-slate-950 p-1.5 shadow-lg'
+              : 'zo-app-menu absolute left-2 right-2 top-full z-50 rounded-md border border-slate-700 bg-slate-950 p-1.5 shadow-lg'
           }
         >
           {APP_DESTINATIONS.map(destination => {
