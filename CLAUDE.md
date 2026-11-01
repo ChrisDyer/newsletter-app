@@ -1,6 +1,6 @@
 # newsletter-app
 
-Newsletter reader for the Gmail `Newsletters` label. The app is deployed at `https://newsletter.zo-bot.com/`; old `https://zo-bot.com/newsletter/*` redirects here with reader paths and query strings preserved. Cloudflare Access coverage for the new hostname still needs configuration; the origin rejects missing identity headers.
+Newsletter reader for the Gmail `Newsletters` label. The app is deployed at `https://newsletter.zo-bot.com/`; old `https://zo-bot.com/newsletter/*` redirects here with reader paths and query strings preserved. Cloudflare Access presents a login redirect on the public hostname (verified 2026-11-01); the origin rejects missing identity headers.
 
 ## Stack
 
@@ -72,6 +72,10 @@ Production runs on port 3002 under PM2 name `newsletter-app` and is deployed wit
 
 ## Home Screen notifications
 
+Deployed 2026-11-01. All 18 tests and the production build passed on the VPS.
+Authenticated worker/config/count checks and origin access gates passed; actual
+iPad push delivery still needs a device opt-in and verification.
+
 `server/push.js` uses `web-push` and the existing SQLite database. It creates
 `push_settings` (persistent private VAPID credentials), `push_subscriptions`
 (device subscriptions owned by authenticated writable users), and `push_badge`
@@ -99,4 +103,4 @@ root `CLAUDE.md`. Register the plan folder in the root `projects.config.json` (p
 `totalPhases`) and run `node tools/project-status.mjs` from the repo root.
 ## Independent-app hosting ? 2026-11-01
 
-The standalone build, identity, manifest and icon are deployed. ALLOW_NO_ACCESS_HEADER=0 is persisted in the private production .env and PM2 environment. Until the new hostname has a Cloudflare Access application/policy using the existing Chris-and-Kate allowlist, ordinary unauthenticated requests receive 403. Do not re-enable the development bypass to work around this. Databases and Gmail state are unchanged.
+The standalone build, identity, manifest and icon are deployed. ALLOW_NO_ACCESS_HEADER=0 is persisted in the private production .env and PM2 environment. Public requests now receive the Cloudflare Access login redirect (verified 2026-11-01); direct origin requests without identity remain 403. Preserve the existing allowlist and do not re-enable the development bypass. Notification deployment adds only its own SQLite tables; newsletter content and Gmail configuration are preserved.
