@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { apiFetch, apiUrl } from '../api.js'
-import AppSwitcher from '../appShell/AppSwitcher.jsx'
+import AppIdentity from '../appShell/AppIdentity.jsx'
 import { useReadOnly } from '../readOnly.jsx'
 import SenderAvatar from './SenderAvatar.jsx'
 
@@ -223,7 +223,7 @@ export default function ReaderPage() {
           <header className="shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
-                <AppSwitcher placement="reader-toolbar" />
+                <AppIdentity placement="reader-toolbar" />
                 <TextButton onClick={goBack}>
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Back to newsletters

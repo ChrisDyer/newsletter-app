@@ -1,4 +1,4 @@
-import AppSwitcher from '../appShell/AppSwitcher.jsx'
+import AppIdentity from '../appShell/AppIdentity.jsx'
 import SenderAvatar from './SenderAvatar.jsx'
 import SyncButton from './SyncButton.jsx'
 
@@ -25,15 +25,15 @@ export default function Sidebar({
   onSynced,
   expandedSources,
   onToggleSources,
-  showAppSwitcher = true,
+  showAppIdentity = true,
   readOnly = false,
 }) {
   const visibleSenders = expandedSources ? senders : senders.slice(0, 8)
 
   return (
     <aside className="zo-sidebar flex h-full w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-900 text-slate-100">
-      {showAppSwitcher ? (
-        <AppSwitcher placement="sidebar" />
+      {showAppIdentity ? (
+        <AppIdentity placement="sidebar" />
       ) : (
         <div className="px-4 py-4">
           <h2 className="text-sm font-semibold text-white">Newsletter menu</h2>

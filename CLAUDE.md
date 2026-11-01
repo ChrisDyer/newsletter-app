@@ -76,3 +76,6 @@ New multi-phase plans go under `docs/plans/<slug>/` (see
 `docs/plans/2026-07-newsletter-inbox`) with a `PROGRESS.md` per the convention in the
 root `CLAUDE.md`. Register the plan folder in the root `projects.config.json` (path +
 `totalPhases`) and run `node tools/project-status.mjs` from the repo root.
+## Independent-app migration (2026-11-01, prepared)
+
+Current live hosting remains at the apex subpath until the staged interactive-sudo cutover runs. This branch builds for the independent subdomain root and replaces the global app switcher with the app identity. Use the guarded apps cutover in ../docs/plans/2026-11-independent-apps/IMPLEMENTATION.md before deploying these root-path builds. Databases, roles and API payloads are unchanged. After activation, the canonical host is https://newsletter.zo-bot.com/ and ordinary deploys build at root. Old newsletter paths redirect to the new host, preserving reader paths and queries.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch, apiUrl } from './api.js'
-import AppSwitcher from './appShell/AppSwitcher.jsx'
+import AppIdentity from './appShell/AppIdentity.jsx'
 import NewsletterList from './components/NewsletterList.jsx'
 import PreviewPane from './components/PreviewPane.jsx'
 import ReaderPage from './components/ReaderPage.jsx'
@@ -311,11 +311,11 @@ function Inbox() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-950">
-      <div className="hidden lg:block"><Sidebar {...sidebarProps} showAppSwitcher /></div>
+      <div className="hidden lg:block"><Sidebar {...sidebarProps} showAppIdentity /></div>
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button className="absolute inset-0 bg-slate-950/60" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
-          <div className="relative h-full w-72 shadow-2xl"><Sidebar {...sidebarProps} showAppSwitcher={false} /></div>
+          <div className="relative h-full w-72 shadow-2xl"><Sidebar {...sidebarProps} showAppIdentity={false} /></div>
         </div>
       )}
 
@@ -323,7 +323,7 @@ function Inbox() {
         <section className="flex w-full min-w-0 flex-col border-r border-slate-200 bg-white lg:w-[420px] lg:shrink-0">
           <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3">
             <div className="mb-3 flex items-center gap-3 lg:hidden">
-              <AppSwitcher placement="mobile-header" />
+              <AppIdentity placement="mobile-header" />
               <button onClick={() => setDrawerOpen(true)} aria-label="Open local newsletter menu" className="ml-auto rounded-md border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>

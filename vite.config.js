@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { newsletterPlugin } from './server/plugin.js'
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/newsletter/' : '/',
+  base: '/',
   plugins: [tailwindcss(), react(), newsletterPlugin()],
   server: {
     watch: {
