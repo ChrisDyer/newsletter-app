@@ -55,14 +55,19 @@ test('push credentials persist; notifications carry absolute non-archived unread
   assert.equal(first.web_push, 8030)
   assert.equal(first.notification.app_badge, '1')
   assert.equal(sent[0][2].vapidDetails.publicKey, key)
-  assert.equal(sent[0][2].topic, 'newsletter-unread')
   const encrypted = webpush.generateRequestDetails(...sent[0])
+  const topic = encrypted.headers.Topic
+  // Apple rejects an alphabet-valid topic whose length/trailing bits do not
+  // form canonical base64url (the original "newsletter-unread" failed this).
+  assert.ok(topic.length > 0 && topic.length <= 32)
+  assert.equal(Buffer.from(topic, 'base64url').toString('base64url'), topic)
   assert.equal(encrypted.headers['Content-Encoding'], 'aes128gcm')
   assert.ok(encrypted.body.length > 0)
   db.prepare("UPDATE newsletters SET read_at = 'now' WHERE gmail_id = 'unread'").run()
   push.changed()
   await push.flush()
   const last = JSON.parse(sent.at(-1)[1])
+  assert.equal(sent.at(-1)[2].topic, topic)
   assert.equal(last.unread, 0)
   assert.ok(last.revision > first.revision)
   assert.equal(last.notification.app_badge, '0')
@@ -96,6 +101,21 @@ test('subscription validation rejects arbitrary outbound targets and malformed e
   }
   assert.equal(validSubscription({ ...sub, keys: { auth: 'x', p256dh: 'x' } }), false)
   assert.equal(validSubscription(null), false)
+})
+
+test('push failures log the APNs reason without exposing endpoints or arbitrary response text', async t => {
+  const warn = t.mock.method(console, 'warn', () => {})
+  const db = initDb(':memory:')
+  const sub = subscription('private-device-endpoint')
+  let body = JSON.stringify({ reason: 'BadWebPushTopic', endpoint: sub.endpoint })
+  const push = createPushService(db, { send: async () => { throw { statusCode: 400, body } } })
+  save(db, sub)
+  await push.flush()
+  assert.equal(warn.mock.calls[0].arguments.join(' '), '[push] delivery failed: 400 BadWebPushTopic')
+  body = JSON.stringify({ reason: sub.endpoint })
+  await push.flush()
+  assert.ok(warn.mock.calls.every(call => !call.arguments.join(' ').includes(sub.endpoint)))
+  db.close()
 })
 
 test('subscription endpoints require auth, preserve roles and enforce device ownership', async () => {

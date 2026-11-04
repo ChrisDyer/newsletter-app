@@ -90,6 +90,13 @@ Safari also gets a declarative fallback. Read/archive changes and successful syn
 schedule a coalesced notification; duplicate/no-count-change actions are skipped.
 Badge revisions prevent delayed pushes replacing newer counts.
 
+The transport Topic must be canonical base64url, at most 32 characters; the
+32-character digest prefix in `server/push.js` is stable across sends. A plain
+text label can pass the library's alphabet check yet fail Apple's decoding with
+`400 BadWebPushTopic`. Logs retain the status and a sanitized APNs reason, never
+raw response bodies or subscription endpoints. Live corrected-topic delivery
+returned HTTP 201 from Apple on 2026-11-03; device display still needs confirmation.
+
 `NotificationSettings` in the sidebar/mobile drawer manages this device's opt-in.
 Permission is requested only on a tap. iPad users must install/open the standalone
 Home Screen app. Sync cadence remains `SYNC_INTERVAL_MINUTES` (default 360); push

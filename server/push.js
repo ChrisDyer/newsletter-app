@@ -1,7 +1,19 @@
 import webpush from 'web-push'
+import { createHash } from 'node:crypto'
 
 const services = new WeakMap()
 const PUSH_HOSTS = new Set(['web.push.apple.com', 'fcm.googleapis.com', 'updates.push.services.mozilla.com'])
+// Apple decodes Topic as base64url, rather than only checking its alphabet.
+// A 32-character digest prefix encodes 24 bytes with no padding or trailing bits.
+const UNREAD_TOPIC = createHash('sha256').update('newsletter-unread').digest('base64url').slice(0, 32)
+
+function pushErrorReason(error) {
+  try {
+    const reason = JSON.parse(error.body).reason
+    if (typeof reason === 'string' && /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(reason)) return reason
+  } catch { /* Never log arbitrary error bodies or subscription credentials. */ }
+  return null
+}
 
 export function validSubscription(value) {
   try {
@@ -69,14 +81,14 @@ export function createPushService(db, { send = webpush.sendNotification.bind(web
       try {
         await send(JSON.parse(row.subscription), payload, {
           vapidDetails: { subject: 'https://newsletter.zo-bot.com', ...vapid },
-          TTL: 86400, topic: 'newsletter-unread', urgency: 'normal', timeout: 10000,
+          TTL: 86400, topic: UNREAD_TOPIC, urgency: 'normal', timeout: 10000,
         })
       } catch (error) {
         if ([404, 410].includes(error.statusCode)) {
           db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND subscription = ?').run(row.endpoint, row.subscription)
         } else {
           // Endpoint URLs and subscription keys are credentials; don't log them.
-          console.warn('[push] delivery failed:', error.statusCode || error.code || 'unknown')
+          console.warn('[push] delivery failed:', error.statusCode || error.code || 'unknown', pushErrorReason(error) || '')
         }
       }
     }
